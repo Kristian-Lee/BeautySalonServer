@@ -99,7 +99,8 @@ public class UserService {
         }
     }
 
-    public List<UserVo> getAllUser(){
+    public List<UserVo> getAllUser(Integer pageNum){
+        int pageSize = 5;
         List<User> users = userMapper.selectByExample(new UserExample());
         List<UserVo> userVos = new ArrayList<>();
         users.forEach(user -> {
@@ -123,7 +124,19 @@ public class UserService {
             userVo.setBalance(user.getMoney());
             userVos.add(userVo);
         });
-        return userVos;
+        int end = pageNum * pageSize;
+        if (end > userVos.size()) {
+            end = userVos.size();
+        }
+        List<UserVo> result = new ArrayList<>();
+        System.out.println("page" + pageNum);
+        System.out.println((pageNum - 1) * pageSize);
+        System.out.println(end);
+        for (int i = (pageNum - 1) * pageSize; i < end; i++) {
+            result.add(userVos.get(i));
+        }
+        System.out.println("共" + result.size() + "个数据");
+        return result;
     }
 
     public List<UserVo> searchUser(String query) {
@@ -248,5 +261,10 @@ public class UserService {
         } else {
             return -1;
         }
+    }
+
+    public int getUserQuantities() {
+        List<User> userList = userMapper.selectByExample(new UserExample());
+        return userList.size();
     }
 }

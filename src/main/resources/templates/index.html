@@ -89,14 +89,24 @@
 							<tr>
 								<th colspan="10">
 									<div class="ui right floated pagination menu">
-										<a class="icon item">
+										<a class="icon item" v-if="currentPage > 1" id="prePage">
 											<i class="left chevron icon"></i>
 										</a>
-										<a class="item">1</a>
-										<a class="item">2</a>
-										<a class="item">3</a>
-										<a class="item">4</a>
-										<a class="icon item">
+
+										<a class="item" v-if="group - currentPage == 0 && group >= 5" id="pageOne">{{currentPage - 4}}</a>
+										<a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" id="pageTwo">{{currentPage - 3}}</a>
+
+
+										<a class="item" v-if="currentPage - 2 > 0" id="prePageTwo">{{currentPage - 2}}</a>
+										<a class="item" v-if="currentPage - 1 > 0" id="prePageOne">{{currentPage - 1}}</a>
+										<a class="item" v-if="currentPage">{{currentPage}}</a>
+										<a class="item" v-if="currentPage + 1 <= group" id="nextPageOne">{{currentPage + 1}}</a>
+										<a class="item" v-if="currentPage + 2 <= group" id="nextPageTwo">{{currentPage + 2}}</a>
+
+
+										<a class="item" v-if="currentPage <= 2 && group - currentPage > 2" id="lastPageTwo">{{currentPage + 3}}</a>
+										<a class="item" v-if="currentPage == 1 && group >= 5" id="lastPageOne">{{currentPage + 4}}</a>
+										<a class="icon item" v-if="currentPage < group" id="nextPage">
 											<i class="right chevron icon"></i>
 										</a>
 									</div>
@@ -131,10 +141,23 @@
 					birthdayFlag: false,
 					isPassed: true,
 					query: "",
+					total: 0,
+					group: 0,
+					size: 5,
+					currentPage: 1,
 
 				},
 				mounted: function() {
-					axios.get('/admin/allUser')
+					axios.get('/admin/userQuantities')
+							.then(response => {
+								app.total = response.data
+								app.group = Math.ceil(app.total / app.size)
+							})
+							.catch(function(error) {
+								console.log(error);
+							});
+
+					axios.get('/admin/allUser?page=' + 1)
 						.then(response => {
 							let users = response.data
 							this.users = users
@@ -389,6 +412,146 @@
 			$(document).on('click', "#search", function () {
 				console.log(app.query)
 				axios.get('/admin/searchUser?key=' + app.query)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#prePage", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage - 1
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#prePageTwo", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage - 2
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#prePageOne", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage - 1
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#nextPageOne", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage +　1
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#nextPageTwo", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage +　2
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#nextPage", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage +　1
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#pageOne", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage -　4
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#pageTwo", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage -　3
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#lastPageTwo", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage +　3
+				axios.get('/admin/allUser?page=' + app.currentPage)
+						.then(response => {
+							let users = response.data
+							app.users = users
+							console.log(app.users)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+			})
+
+			$(document).on('click', "#lastPageOne", function () {
+				console.log(app.query)
+				app.currentPage = app.currentPage +　4
+				axios.get('/admin/allUser?page=' + app.currentPage)
 						.then(response => {
 							let users = response.data
 							app.users = users

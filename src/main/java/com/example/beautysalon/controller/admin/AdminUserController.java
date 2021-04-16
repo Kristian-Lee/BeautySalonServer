@@ -48,14 +48,21 @@ public class AdminUserController {
     @CrossOrigin
     @GetMapping("/allUser")
     @ResponseBody
-    public List<UserVo> getAllUser(){
-        return userService.getAllUser();
+    public List<UserVo> getAllUser(@RequestParam Integer page){
+        return userService.getAllUser(page);
+    }
+
+    @CrossOrigin
+    @GetMapping("/userQuantities")
+    @ResponseBody
+    public int getUserQuantities() {
+        return userService.getUserQuantities();
     }
 
     @CrossOrigin
     @GetMapping("/deleteUser")
     @ResponseBody
-    public String getAllUser(@RequestParam Integer userId){
+    public String deleteUser(@RequestParam Integer userId){
         return userService.deleteUser(userId);
     }
 
