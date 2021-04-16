@@ -99,7 +99,7 @@
 
 										<a class="item" v-if="currentPage - 2 > 0" id="prePageTwo">{{currentPage - 2}}</a>
 										<a class="item" v-if="currentPage - 1 > 0" id="prePageOne">{{currentPage - 1}}</a>
-										<a class="item" v-if="currentPage">{{currentPage}}</a>
+										<a class="item active">{{currentPage}}</a>
 										<a class="item" v-if="currentPage + 1 <= group" id="nextPageOne">{{currentPage + 1}}</a>
 										<a class="item" v-if="currentPage + 2 <= group" id="nextPageTwo">{{currentPage + 2}}</a>
 
@@ -114,6 +114,11 @@
 							</tr>
 						</tfoot>
 					</table>
+					<div class="ui container" style="width: 100%;" th:align="right">
+						<label>
+							共计 {{group}} 页， {{total}} 条数据
+						</label>
+					</div>
 				</div>
 			</div>
 			<div th:replace="modal/modal :: deleteUserModal"></div>
@@ -314,6 +319,8 @@
 						let msg = response.data
 						if (msg.includes("成功")) {
 							app.users.splice(app.index, 1)
+							app.total = app.total - 1
+							app.group = Math.ceil(app.total / app.size)
 						}
 						alert(msg)
 					})
@@ -396,6 +403,8 @@
 									app.users[app.users.length - 1].points = 0
 									app.users[app.users.length - 1].balance = 0
 									app.users[app.users.length - 1].phone = app.phone
+									app.total = app.total + 1
+									app.group = Math.ceil(app.total / app.size)
 									alert("添加成功")
 								}
 								else {
