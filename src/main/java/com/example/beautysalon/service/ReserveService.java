@@ -5,6 +5,7 @@ import com.example.beautysalon.mbg.mapper.*;
 import com.example.beautysalon.mbg.model.*;
 import com.example.beautysalon.response.ResponseBody;
 import com.example.beautysalon.response.ResponseCode;
+import com.example.beautysalon.vo.ReservationVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -476,5 +477,156 @@ public class ReserveService {
             tempMap.put("coupon", couponList);
         }
         return new ResponseBody(ResponseCode.REQUEST_VALID_POINTS_COUPON_SUCCESS, tempMap);
+    }
+
+
+    public List<Reserve> getReservationQuantities(String key) {
+        //按用户查找
+        UserExample userExample = new UserExample();
+        userExample.createCriteria().andUserNameLike("%" + key + "%");
+        List<User> userList = userMapper.selectByExample(userExample);
+        List<Integer> userIdList = new ArrayList<>();
+        userList.forEach(user -> {
+            userIdList.add(user.getUserId());
+        });
+
+        //按发型师查找
+        StylistExample stylistExample = new StylistExample();
+        stylistExample.createCriteria().andRealNameLike("%" + key + "%");
+        List<Stylist> stylistList = stylistMapper.selectByExample(stylistExample);
+        List<Integer> stylistIdList = new ArrayList<>();
+        stylistList.forEach(stylist -> {
+            stylistIdList.add(stylist.getStylistId());
+        });
+
+        //按门店
+        BarbershopExample barbershopExample = new BarbershopExample();
+        barbershopExample.createCriteria().andBarbershopNameLike("%" + key + "%");
+        List<Barbershop> barbershopList = barbershopMapper.selectByExample(barbershopExample);
+        List<Integer> barbershopIdList = new ArrayList<>();
+        barbershopList.forEach(barbershop -> {
+            barbershopIdList.add(barbershop.getBarbershopId());
+        });
+        List<Integer> stylistIdList1 = new ArrayList<>();
+        if (barbershopIdList.size() > 0) {
+            StylistExample stylistExample1 = new StylistExample();
+            stylistExample1.createCriteria().andBarbershopIdIn(barbershopIdList);
+            List<Stylist> stylistList1 = stylistMapper.selectByExample(stylistExample1);
+            stylistList1.forEach(stylist -> {
+                stylistIdList1.add(stylist.getStylistId());
+            });
+        }
+
+        ReserveExample reserveExample = new ReserveExample();
+
+        if (userIdList.size() > 0) {
+            ReserveExample.Criteria criteria = new ReserveExample().createCriteria();
+            criteria.andUserIdIn(userIdList);
+            reserveExample.or(criteria);
+        }
+        if (stylistIdList.size() > 0) {
+            ReserveExample.Criteria criteria = new ReserveExample().createCriteria();
+            criteria.andStylistIdIn(stylistIdList);
+            reserveExample.or(criteria);
+        }
+        if (barbershopIdList.size() > 0) {
+            ReserveExample.Criteria criteria = new ReserveExample().createCriteria();
+            criteria.andStylistIdIn(stylistIdList1);
+            reserveExample.or(criteria);
+        }
+
+        return reserveMapper.selectByExample(reserveExample);
+    }
+
+    public List<ReservationVo> getAllReservation(String key, Integer pageNum) {
+        int pageSize = 5;
+        List<Reserve> reserveList = getReservationQuantities(key);
+        Collections.reverse(reserveList);
+        List<ReservationVo> reservationVoList = new ArrayList<>();
+        reserveList.forEach(reserve -> {
+            ReservationVo reservationVo = new ReservationVo();
+            reservationVo.setReserveId(reserve.getId());
+            reservationVo.setUserName(userMapper.selectByPrimaryKey(reserve.getUserId()).getUserName());
+            Stylist stylist = stylistMapper.selectByPrimaryKey(reserve.getStylistId());
+            reservationVo.setStylistName(stylist.getStylistName());
+            reservationVo.setBarbershop(barbershopMapper.selectByPrimaryKey(stylist.getBarbershopId()).getBarbershopName());
+            reservationVo.setOrigin("￥" + reserve.getTotal());
+            reservationVo.setCreateDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(reserve.getCreateDate()));
+            reservationVo.setServeDate(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(reserve.getServeDate()));
+            reservationVo.setServices(reserve.getServices());
+            reservationVo.setTakeUp(reserve.getTakeup() + "分钟");
+            reservationVo.setEnableCancel("");
+            switch (reserve.getStatus()) {
+                case 0:
+                    reservationVo.setStatus("待付款");
+                    break;
+                case 1:
+                    if (reserve.getServeDate().compareTo(new Date()) > 0) {
+                        reservationVo.setEnableCancel("true");
+                        reservationVo.setStatus("待服务");
+                    } else {
+                        reservationVo.setStatus("已完成");
+                    }
+                    break;
+                case 3:
+                    reservationVo.setStatus("已取消");
+                    break;
+                default:
+                    break;
+            }
+            if (reserve.getPoints() != null && reserve.getPoints() > 0) {
+                reservationVo.setPoints("- ￥" + ((float) reserve.getPoints()) / 100 );
+            } else {
+                reservationVo.setPoints("无");
+            }
+
+            if (reserve.getCoupon() != null && reserve.getCoupon() > 0) {
+                CouponExample couponExample = new CouponExample();
+                couponExample.createCriteria().andCouponIdEqualTo(reserve.getCoupon());
+                Coupon coupon = couponMapper.selectByExample(couponExample).get(0);
+                switch (coupon.getType()) {
+                    case 0:
+                        reservationVo.setCoupon("- ￥" + coupon.getValue());
+                        break;
+                    case 1:
+                        reservationVo.setCoupon("- ￥" + ((float) reserve.getTotal()) / 5);
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                reservationVo.setCoupon("无");
+            }
+            reservationVo.setRealPay("￥" + reserve.getValue());
+            if (reserve.getPayDate() != null) {
+                reservationVo.setPayDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(reserve.getPayDate()));
+            }
+
+            reservationVoList.add(reservationVo);
+        });
+        int end = pageNum * pageSize;
+        if (end > reservationVoList.size()) {
+            end = reservationVoList.size();
+        }
+        List<ReservationVo> result = new ArrayList<>();
+
+        for (int i = (pageNum - 1) * pageSize; i < end; i++) {
+            result.add(reservationVoList.get(i));
+        }
+        System.out.println("共" + result.size() + "个数据");
+        return result;
+    }
+
+    public int deleteReservation(Integer reserveId) {
+        return reserveMapper.deleteByPrimaryKey(reserveId);
+    }
+
+    public int cancelReservation(Integer reserveId) throws ParseException {
+        ResponseBody responseBody = cancelReserve(reserveId);
+        if (responseBody.getCode() == ResponseCode.CANCEL_RESERVE_SUCCESS) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
 }

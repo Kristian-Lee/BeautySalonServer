@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 删除弹出框 -->
+<div class="ui delete modal" style="width: 40%;" th:fragment="deleteReservationModal">
+    <i class="close icon"></i>
+    <div class="header">
+        确认删除该预约信息？
+    </div>
+    <div class="actions">
+        <input type="text" name="reserveId" hidden="hidden" :value="reserveId">
+
+        <div class="ui black deny button">
+            取消
+        </div>
+        <div class="ui positive right labeled icon button" id="deleteReservation">
+            提交
+            <i class="checkmark icon"></i>
+        </div>
+    </div>
+</div>
+
+<div class="ui cancel modal" style="width: 40%;" th:fragment="cancelReservationModal">
+    <i class="close icon"></i>
+    <div class="header">
+        确认取消该预约？
+    </div>
+    <div class="actions">
+        <input type="text" name="reserveId" hidden="hidden" :value="reserveId">
+
+        <div class="ui black deny button">
+            取消
+        </div>
+        <div class="ui positive right labeled icon button" id="cancelReservation">
+            提交
+            <i class="checkmark icon"></i>
+        </div>
+    </div>
+</div>
+
+
+
+
+</div>
+</body>
+</html>
