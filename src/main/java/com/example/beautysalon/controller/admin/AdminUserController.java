@@ -48,15 +48,15 @@ public class AdminUserController {
     @CrossOrigin
     @GetMapping("/allUser")
     @ResponseBody
-    public List<UserVo> getAllUser(@RequestParam Integer page){
-        return userService.getAllUser(page);
+    public List<UserVo> getAllUser(@RequestParam String key, @RequestParam Integer page){
+        return userService.getAllUser(key, page);
     }
 
     @CrossOrigin
     @GetMapping("/userQuantities")
     @ResponseBody
-    public int getUserQuantities() {
-        return userService.getUserQuantities();
+    public int getUserQuantities(@RequestParam String key) {
+        return userService.getUserQuantities(key).size();
     }
 
     @CrossOrigin

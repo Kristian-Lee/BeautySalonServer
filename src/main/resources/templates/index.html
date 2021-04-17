@@ -19,7 +19,7 @@
 					<a href="fixed.php#" class="item">家余</a>
 					<a href="fixed.php#" class="item">主页</a>
 					<a class="item" href="fixed.php#">用户管理</a>
-					<a class="item" href="fixed.php#">发型师管理</a>
+					<a class="item" href="/admin/stylist">发型师管理</a>
 					<a class="item" href="fixed.php#">店铺管理</a>
 					<a class="item" href="fixed.php#">订单管理</a>
 					<a class="item" href="fixed.php#">优惠券管理</a>
@@ -34,13 +34,10 @@
 			<br><br><br><br>
 			<div class="ui container" style="width: 85%;" th:align="right">
 				<div class="ui search">
-					<div class="actions">
-						<div class="ui positive icon input"  id="search">
+						<div class="ui positive icon input">
 							<input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索用户" v-model="query">
-								<i class="search link icon"></i>
-
+								<i class="search link icon" id="search"></i>
 						</div>
-					</div>
 					<div class="results"></div>
 				</div>
 			</div>
@@ -63,7 +60,7 @@
 								<th>
 									操作
 									<div class="ui green right ribbon large label">
-										<a @click="add">添加</a>
+										<a @click="add">添加用户</a>
 									</div>
 								</th>
 							</tr>
@@ -80,7 +77,7 @@
 								<td>{{user.balance}}</td>
 								<td>{{user.lastSignIn}}</td>
 								<td>
-									<button class="ui green button" @click="toUpdate(index)">修改</button>
+									<button class="ui green button" @click="toUpdate(index)">更新</button>
 									<button class="ui red button" @click="toDelete(index)">删除</button>
 								</td>
 							</tr>
@@ -89,24 +86,24 @@
 							<tr>
 								<th colspan="10">
 									<div class="ui right floated pagination menu">
-										<a class="icon item" v-if="currentPage > 1" id="prePage">
+										<a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
 											<i class="left chevron icon"></i>
 										</a>
 
-										<a class="item" v-if="group - currentPage == 0 && group >= 5" id="pageOne">{{currentPage - 4}}</a>
-										<a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" id="pageTwo">{{currentPage - 3}}</a>
+										<a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+										<a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
 
 
-										<a class="item" v-if="currentPage - 2 > 0" id="prePageTwo">{{currentPage - 2}}</a>
-										<a class="item" v-if="currentPage - 1 > 0" id="prePageOne">{{currentPage - 1}}</a>
+										<a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+										<a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
 										<a class="item active">{{currentPage}}</a>
-										<a class="item" v-if="currentPage + 1 <= group" id="nextPageOne">{{currentPage + 1}}</a>
-										<a class="item" v-if="currentPage + 2 <= group" id="nextPageTwo">{{currentPage + 2}}</a>
+										<a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+										<a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
 
 
-										<a class="item" v-if="currentPage <= 2 && group - currentPage > 2" id="lastPageTwo">{{currentPage + 3}}</a>
-										<a class="item" v-if="currentPage == 1 && group >= 5" id="lastPageOne">{{currentPage + 4}}</a>
-										<a class="icon item" v-if="currentPage < group" id="nextPage">
+										<a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+										<a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+										<a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
 											<i class="right chevron icon"></i>
 										</a>
 									</div>
@@ -121,9 +118,9 @@
 					</div>
 				</div>
 			</div>
-			<div th:replace="modal/modal :: deleteUserModal"></div>
-			<div th:replace="modal/modal :: updateUserModal"></div>
-			<div th:replace="modal/modal :: addUserModal"></div>
+			<div th:replace="modal/userModal :: deleteUserModal"></div>
+			<div th:replace="modal/userModal :: updateUserModal"></div>
+			<div th:replace="modal/userModal :: addUserModal"></div>
 		</div>
 
 
@@ -153,7 +150,7 @@
 
 				},
 				mounted: function() {
-					axios.get('/admin/userQuantities')
+					axios.get('/admin/userQuantities?key=' + '')
 							.then(response => {
 								app.total = response.data
 								app.group = Math.ceil(app.total / app.size)
@@ -162,9 +159,10 @@
 								console.log(error);
 							});
 
-					axios.get('/admin/allUser?page=' + 1)
+					axios.get('/admin/allUser?key=' + '' + '&page=' + 1 )
 						.then(response => {
 							let users = response.data
+							app.currentPage = 1
 							this.users = users
 							console.log(this.users)
 						})
@@ -173,6 +171,19 @@
 						});
 				},
 				methods: {
+					toPage: function (pageNum) {
+						console.log(app.query)
+						app.currentPage = pageNum
+						axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+								.then(response => {
+									let users = response.data
+									app.users = users
+									console.log(app.users)
+								})
+								.catch(function(error) {
+									console.log(error);
+								});
+					},
 					toUpdate: function(index) {
 						this.userId = this.users[index].userId
 						this.username = this.users[index].username
@@ -384,6 +395,7 @@
 					})
 							.then(response => {
 								console.log(response.data)
+								let result = false;
 								if (response.data !== -1){
 
 									// user.append("userId", app.userId)
@@ -395,16 +407,27 @@
 									// user.append("phone", app.phone)
 									// app.users.splice((app.users.length + 1),1,user);
 
-									app.users.push(user)
-									app.users[app.users.length - 1].userId = response.data
-									app.users[app.users.length - 1].username = app.username
-									app.users[app.users.length - 1].birthday = app.birthday
-									app.users[app.users.length - 1].hobby = app.hobby
-									app.users[app.users.length - 1].points = 0
-									app.users[app.users.length - 1].balance = 0
-									app.users[app.users.length - 1].phone = app.phone
-									app.total = app.total + 1
-									app.group = Math.ceil(app.total / app.size)
+									if (app.query !== "") {
+										if (app.username.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1) {
+											app.total = app.total + 1
+											app.group = Math.ceil(app.total / app.size)
+											result = true
+										}
+									} else {
+										app.total = app.total + 1
+										app.group = Math.ceil(app.total / app.size)
+										result = true
+									}
+									if (result) {
+										app.users.push(user)
+										app.users[app.users.length - 1].userId = response.data
+										app.users[app.users.length - 1].username = app.username
+										app.users[app.users.length - 1].birthday = app.birthday
+										app.users[app.users.length - 1].hobby = app.hobby
+										app.users[app.users.length - 1].points = 0
+										app.users[app.users.length - 1].balance = 0
+										app.users[app.users.length - 1].phone = app.phone
+									}
 									alert("添加成功")
 								}
 								else {
@@ -420,156 +443,165 @@
 
 			$(document).on('click', "#search", function () {
 				console.log(app.query)
-				axios.get('/admin/searchUser?key=' + app.query)
+				axios.get('/admin/userQuantities?key=' + app.query)
+						.then(response => {
+							app.total = response.data
+							app.group = Math.ceil(app.total / app.size)
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+				axios.get('/admin/allUser?key=' + app.query + '&page=' + 1)
 						.then(response => {
 							let users = response.data
 							app.users = users
+							app.currentPage = 1
 							console.log(app.users)
 						})
 						.catch(function(error) {
 							console.log(error);
 						});
 			})
-
-			$(document).on('click', "#prePage", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage - 1
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#prePageTwo", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage - 2
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#prePageOne", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage - 1
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#nextPageOne", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage +　1
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#nextPageTwo", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage +　2
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#nextPage", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage +　1
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#pageOne", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage -　4
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#pageTwo", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage -　3
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#lastPageTwo", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage +　3
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-
-			$(document).on('click', "#lastPageOne", function () {
-				console.log(app.query)
-				app.currentPage = app.currentPage +　4
-				axios.get('/admin/allUser?page=' + app.currentPage)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
+			//
+			// $(document).on('click', "#prePage", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage - 1
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#prePageTwo", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage - 2
+			// 	axios.get('/admin/allUser?key=' + app.query + "&page=" + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#prePageOne", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage - 1
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#nextPageOne", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage +　1
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#nextPageTwo", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage +　2
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#nextPage", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage +　1
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#pageOne", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage -　4
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#pageTwo", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage -　3
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#lastPageTwo", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage +　3
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
+			//
+			// $(document).on('click', "#lastPageOne", function () {
+			// 	console.log(app.query)
+			// 	app.currentPage = app.currentPage +　4
+			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
+			// 			.then(response => {
+			// 				let users = response.data
+			// 				app.users = users
+			// 				console.log(app.users)
+			// 			})
+			// 			.catch(function(error) {
+			// 				console.log(error);
+			// 			});
+			// })
 		</script>
 	</body>
 </html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- 删除弹出框 -->
+    <div class="ui delete modal" style="width: 40%;" th:fragment="deleteStylistModal">
+        <i class="close icon"></i>
+        <div class="header">
+            删除发型师信息
+        </div>
+        <div class="actions">
+            <input type="text" name="stylistId" hidden="hidden" :value="stylistId">
+            确认删除该发型师所有信息？
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui positive right labeled icon button" id="deleteStylist">
+                提交
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 审核弹出框 -->
+    <div class="ui examine modal" style="width: 40%;" th:fragment="examineModal">
+        <i class="close icon"></i>
+        <div class="header">
+            是否通过该发型师的资质审核？
+        </div>
+        <div class="actions">
+            <input type="text" name="stylistId" hidden="hidden" :value="stylistId">
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui positive right labeled icon button" id="examine">
+                通过
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="ui add modal" th:fragment="addStylistModal">
+        <i class="close icon"></i>
+        <div class="header">
+            添加发型师信息
+        </div>
+        <div class="content">
+            <div class="ui form">
+                <div class="field">
+
+                    <label>用户名</label>
+                    <div class="field">
+                        <input type="text" name="stylistName" placeholder="限10字符以内" v-model="stylistName">
+                        <div class="ui pointing red basic label" v-if="stylistNameMsg != ''">
+                            {{stylistNameMsg}}
+                        </div>
+                    </div>
+
+                    <label>真实姓名</label>
+                    <div class="field">
+                        <input type="text" name="realName" placeholder="限10字符以内" v-model="realName">
+                        <div class="ui pointing red basic label" v-if="realNameMsg != ''">
+                            {{realNameMsg}}
+                        </div>
+                    </div>
+
+                    <label>手机号</label>
+                    <div class="field">
+                        <input type="number" name="phone" placeholder="11位手机号" v-model="phone">
+                        <div class="ui pointing red basic label" v-if="phoneFlag">
+                            手机号不合法
+                        </div>
+                    </div>
+
+                    <label>所属门店</label>
+                    <div class="field">
+                        <div class="ui fluid selection dropdown">
+                            <input type="hidden" id="barbershop">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">选择门店</div>
+                            <div class="menu" id="addItem">
+                            </div>
+                        </div>
+                        <div class="ui pointing red basic label" v-if="barbershopMsg != ''">
+                            {{barbershopMsg}}
+                        </div>
+<!--                        <input type="text" name="barbershop" placeholder="限10字符以内" v-model="barbershop">-->
+<!--                        <div class="ui pointing red basic label" v-if="barbershopMsg != ''">-->
+<!--                            {{barbershopMsg}}-->
+<!--                        </div>-->
+                    </div>
+
+                    <label>从业经验</label>
+                    <div class="field">
+                        <input type="number" min="0" step="1" name="workingYears" placeholder="" v-model="workingYears">
+                        <div class="ui pointing red basic label" v-if="workingYearsMsg != ''">
+                            {{workingYearsMsg}}
+                        </div>
+                    </div>
+
+                    <label>特长</label>
+                    <div class="field">
+                        <input type="text" name="speciality" placeholder="限50个字符以内" v-model="speciality">
+                        <div class="ui pointing red basic label" v-if="specialityMsg != ''">
+                            {{specialityMsg}}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui right labeled icon positive button" id="addStylist">
+                提交
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui update modal" th:fragment="updateStylistModal">
+        <i class="close icon"></i>
+        <div class="header">
+            更新发型师信息
+        </div>
+        <div class="content">
+            <div class="ui form">
+                <div class="field">
+
+                    <label>用户名</label>
+                    <div class="field">
+                        <input type="text" name="stylistName" placeholder="限10字符以内" v-model="stylistName">
+                        <div class="ui pointing red basic label" v-if="stylistNameMsg != ''">
+                            {{stylistNameMsg}}
+                        </div>
+                    </div>
+
+                    <label>真实姓名</label>
+                    <div class="field">
+                        <input type="text" name="realName" placeholder="限10字符以内" v-model="realName">
+                        <div class="ui pointing red basic label" v-if="realNameMsg != ''">
+                            {{realNameMsg}}
+                        </div>
+                    </div>
+
+                    <label>手机号</label>
+                    <div class="field">
+                        <input type="number" name="phone" placeholder="11位手机号" v-model="phone">
+                        <div class="ui pointing red basic label" v-if="phoneFlag">
+                            手机号不合法
+                        </div>
+                    </div>
+
+                    <label>所属门店</label>
+                    <div class="field">
+                        <div class="ui fluid selection dropdown">
+                            <input type="hidden" id="barbershop2">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">{{barbershop}}</div>
+                            <div class="menu" id="addItem2">
+                            </div>
+                        </div>
+                        <div class="ui pointing red basic label" v-if="barbershopMsg != ''">
+                            {{barbershopMsg}}
+                        </div>
+                        <!--                        <input type="text" name="barbershop" placeholder="限10字符以内" v-model="barbershop">-->
+                        <!--                        <div class="ui pointing red basic label" v-if="barbershopMsg != ''">-->
+                        <!--                            {{barbershopMsg}}-->
+                        <!--                        </div>-->
+                    </div>
+
+                    <label>从业经验</label>
+                    <div class="field">
+                        <input type="number" min="0" step="1" name="workingYears" placeholder="" v-model="workingYears">
+                        <div class="ui pointing red basic label" v-if="workingYearsMsg != ''">
+                            {{workingYearsMsg}}
+                        </div>
+                    </div>
+
+                    <label>特长</label>
+                    <div class="field">
+                        <input type="text" name="speciality" placeholder="限50个字符以内" v-model="speciality">
+                        <div class="ui pointing red basic label" v-if="specialityMsg != ''">
+                            {{specialityMsg}}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui right labeled icon positive button" id="updateStylist">
+                提交
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

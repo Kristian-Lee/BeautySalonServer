@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <title>index</title>
+        <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+        <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+    </head>
+    <body>
+        <div id="app">
+            <div class="ui fixed inverted menu">
+                <div class="ui container" style="width: 85%">
+                    <a href="" class="header item">
+                        <img class="logo" th:src="@{/img/doge.png}">
+                    </a>
+                    <a href="fixed.php#" class="item">家余</a>
+                    <a href="fixed.php#" class="item">主页</a>
+                    <a class="item" href="/admin/index">用户管理</a>
+                    <a class="item" href="/admin/stylist">发型师管理</a>
+                    <a class="item" href="fixed.php#">店铺管理</a>
+                    <a class="item" href="fixed.php#">订单管理</a>
+                    <a class="item" href="fixed.php#">优惠券管理</a>
+                    <a class="item" href="fixed.php#">资讯管理</a>
+                </div>
+            </div>
+            <br><br><br><br>
+            <div class="ui container" style="width: 85%;" th:align="right">
+                <div class="ui search">
+                    <div class="ui positive icon input">
+                        <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索发型师" v-model="query">
+                        <i class="search link icon" id="search"></i>
+                    </div>
+                    <div class="results"></div>
+                </div>
+            </div>
+
+            <br><br>
+            <div class="ui container" style="width: 85%;">
+                <div class="ui fluid raised segment">
+                    <table class="ui celled table">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>id</th>
+                            <th>发型师用户名</th>
+                            <th>真实姓名</th>
+                            <th>手机号</th>
+                            <th>所属门店</th>
+                            <th>从业经验(年)</th>
+                            <th>特长</th>
+                            <th>用户评分</th>
+                            <th>好评率</th>
+                            <th>是否通过审核</th>
+                            <th>
+                                操作
+                                <div class="ui green right ribbon large label">
+                                    <a @click="add">添加发型师</a>
+                                </div>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(stylist,index) in stylists" :key="'df' + index">
+                            <td>{{index}}</td>
+                            <td>{{stylist.stylistId}}</td>
+                            <td>{{stylist.stylistName}}</td>
+                            <td>{{stylist.realName}}</td>
+                            <td>{{stylist.phone}}</td>
+                            <td>{{stylist.barbershop}}</td>
+                            <td>{{stylist.workingYears}}</td>
+                            <td>{{stylist.speciality}}</td>
+                            <td>{{stylist.rate}}</td>
+                            <td>{{stylist.popularity}}</td>
+                            <td>{{stylist.passed}}</td>
+                            <td>
+
+                                <button class="ui green button" @click="toUpdate(index)">更新</button>
+                                <button class="ui red button" @click="toDelete(index)">删除</button>
+                                <button class="ui blue button" @click="examine(index)" v-if="stylist.passed === '未通过'">审核</button>
+                            </td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="12">
+                                <div class="ui right floated pagination menu">
+                                    <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
+                                        <i class="left chevron icon"></i>
+                                    </a>
+
+                                    <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+                                    <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+
+
+                                    <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+                                    <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
+                                    <a class="item active">{{currentPage}}</a>
+                                    <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+                                    <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+
+
+                                    <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+                                    <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+                                    <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
+                                        <i class="right chevron icon"></i>
+                                    </a>
+                                </div>
+                            </th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                    <div class="ui container" style="width: 100%;" th:align="right">
+                        <label>
+                            共计 {{group}} 页， {{total}} 条数据
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="modal/stylistModal :: deleteStylistModal"></div>
+            <div th:replace="modal/stylistModal :: updateStylistModal"></div>
+            <div th:replace="modal/stylistModal :: addStylistModal"></div>
+            <div th:replace="modal/stylistModal :: examineModal"></div>
+        </div>
+
+
+        <script type="text/javascript">
+            let app = new Vue({
+                el: '#app',
+                data: {
+                    stylistId: -1,
+                    stylists: [],
+                    stylistName: "家余",
+                    realName: "2021-04-11",
+                    speciality: "",
+                    rate: 0,
+                    popularity: 0,
+                    phone: "",
+                    barbershop: "",
+                    workingYears: "",
+                    passed: "",
+                    index: 0,
+                    stylistNameMsg: "",
+                    realNameMsg: "",
+                    phoneFlag: false,
+                    barbershopMsg: "",
+                    workingYearsMsg: "",
+                    specialityMsg: "",
+                    lastSignIn: "",
+                    isPassed: true,
+                    query: "",
+                    total: 0,
+                    group: 0,
+                    size: 5,
+                    currentPage: 1,
+
+                },
+                mounted: function() {
+                    axios.get('/admin/stylistQuantities?key=' + '')
+                        .then(response => {
+                            app.total = response.data
+                            app.group = Math.ceil(app.total / app.size)
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+
+                    axios.get('/admin/allStylist?key=' + '' + '&page=' + 1 )
+                        .then(response => {
+                            let stylists = response.data
+                            app.currentPage = 1
+                            this.stylists = stylists
+                            console.log(this.stylists)
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+
+                    let name
+                    axios.get('/admin/allBarbershop')
+                        .then(response => {
+                            name = response.data
+                            if (name.length > 0) {
+                                for (var i = 0; i < name.length; i++){
+                                    $("#addItem").append("<div class=item data-value="+name[i]+">"+name[i]+"</div>")
+                                    $("#addItem2").append("<div class=item data-value="+name[i]+">"+name[i]+"</div>")
+                                }
+                            }
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                },
+                methods: {
+                    toPage: function (pageNum) {
+                        console.log(app.query)
+                        app.currentPage = pageNum
+                        axios.get('/admin/allStylist?key=' + app.query + '&page=' + app.currentPage)
+                            .then(response => {
+                                let stylists = response.data
+                                app.stylists = stylists
+                                console.log(app.stylists)
+                            })
+                            .catch(function(error) {
+                                console.log(error);
+                            });
+                    },
+
+                    toDelete: function (index) {
+                        this.stylistId = this.stylists[index].stylistId
+                        this.index = index
+                        $('.ui.delete.modal').modal('show');
+                    },
+
+                    examine: function (index) {
+                        this.stylistId = this.stylists[index].stylistId
+                        this.index = index
+                        $('.ui.examine.modal').modal('show');
+                    },
+
+                    toUpdate: function(index) {
+                        this.stylistId = this.stylists[index].stylistId
+                        this.stylistName = this.stylists[index].stylistName
+                        this.realName = this.stylists[index].realName
+                        this.barbershop = this.stylists[index].barbershop
+                        this.phone = this.stylists[index].phone
+                        this.workingYears = this.stylists[index].workingYears
+                        this.speciality = this.stylists[index].speciality
+                        this.index = index;
+                        $('.ui.selection.dropdown').dropdown();
+                        $('.ui.update.modal')
+                            .modal({
+                                closable  : false,
+                                onDeny    : function(){
+                                    return true;
+                                },
+                                onApprove : function() {
+                                    app.isPassed = true
+
+                                    //判断用户名合法性
+                                    if (app.stylistName.length > 10){
+                                        app.isPassed = false
+                                        app.stylistNameMsg = "用户名限制10个字符以内"
+                                    } else if (app.stylistName.length === 0) {
+                                        app.isPassed = false
+                                        app.stylistNameMsg = "用户名不可为空"
+                                    } else {
+                                        app.stylistNameMsg = ""
+                                    }
+
+                                    if (app.realName.length > 10){
+                                        app.isPassed = false
+                                        app.realNameMsg = "姓名限制10个字符以内"
+                                    } else if (app.realName.length === 0) {
+                                        app.isPassed = false
+                                        app.realNameMsg = "姓名不可为空"
+                                    } else {
+                                        app.realNameMsg = ""
+                                    }
+
+                                    //判断手机号合法性
+                                    const regex = /^1[3456789]\d{9}$/
+                                    if (!regex.test(app.phone)) {
+                                        app.phoneFlag = true
+                                        app.isPassed = false
+                                    } else {
+                                        app.phoneFlag = false
+                                    }
+
+                                    if (app.speciality.length > 50){
+                                        app.isPassed = false
+                                        app.specialityMsg = "特长限制50个字符以内"
+                                    } else if (app.speciality.length === 0) {
+                                        app.isPassed = false
+                                        app.specialityMsg = "特长不可为空"
+                                    } else {
+                                        app.specialityMsg = ""
+                                    }
+
+                                    return app.isPassed
+                                }
+                            })
+                            .modal('show');
+                    },
+
+                    add: function () {
+                        this.stylistName = ""
+                        this.realName = ""
+                        this.phone = ""
+                        this.barbershop = ""
+                        this.workingYears = ""
+                        this.speciality = ""
+
+                        $('.ui.selection.dropdown').dropdown();
+                        $('.ui.add.modal')
+                            .modal({
+                                closable  : false,
+                                onDeny    : function(){
+                                    return true;
+                                },
+                                onApprove : function() {
+                                    app.isPassed = true
+
+                                    app.barbershop = document.getElementById("barbershop").value
+                                    if (app.barbershop === "") {
+                                        app.isPassed = false
+                                        app.barbershopMsg = "请选择门店"
+                                    } else {
+                                        app.barbershopMsg = ""
+                                    }
+                                    document.getElementById("barbershop").value = ""
+
+                                    //判断用户名合法性
+                                    if (app.stylistName.length > 10){
+                                        app.isPassed = false
+                                        app.stylistNameMsg = "用户名限制10个字符以内"
+                                    } else if (app.stylistName.length === 0) {
+                                        app.isPassed = false
+                                        app.stylistNameMsg = "用户名不可为空"
+                                    } else {
+                                        app.stylistNameMsg = ""
+                                    }
+
+                                    if (app.realName.length > 10){
+                                        app.isPassed = false
+                                        app.realNameMsg = "姓名限制10个字符以内"
+                                    } else if (app.realName.length === 0) {
+                                        app.isPassed = false
+                                        app.realNameMsg = "姓名不可为空"
+                                    } else {
+                                        app.realNameMsg = ""
+                                    }
+
+                                    //判断手机号合法性
+                                    const regex = /^1[3456789]\d{9}$/
+                                    if (!regex.test(app.phone)) {
+                                        app.phoneFlag = true
+                                        app.isPassed = false
+                                    } else {
+                                        app.phoneFlag = false
+                                    }
+
+                                    if (app.speciality.length > 50){
+                                        app.isPassed = false
+                                        app.specialityMsg = "特长限制50个字符以内"
+                                    } else if (app.speciality.length === 0) {
+                                        app.isPassed = false
+                                        app.specialityMsg = "特长不可为空"
+                                    } else {
+                                        app.specialityMsg = ""
+                                    }
+
+                                    return app.isPassed
+                                }
+                            })
+                            .modal('show');
+
+                        // $('.ui.add.modal').modal('show');
+                    }
+                }
+            })
+
+            $(document).on('click', '#deleteStylist', function() {
+                axios.get('/admin/deleteStylist?stylistId=' + app.stylistId)
+                    .then(response => {
+                        let msg = response.data
+                        if (msg.includes("成功")) {
+                            app.stylists.splice(app.index, 1)
+                            app.total = app.total - 1
+                            app.group = Math.ceil(app.total / app.size)
+                        }
+                        alert(msg)
+                    })
+                    .catch(error => console.log(error))
+            })
+
+            $(document).on('click', '#examine', function() {
+                axios.get('/admin/examineStylist?stylistId=' + app.stylistId)
+                    .then(response => {
+                        let result = response.data
+                        if (result !== -1) {
+                            app.stylists[app.index].passed = "通过"
+                        } else {
+                            alert("通过失败")
+                        }
+                    })
+                    .catch(error => console.log(error))
+            })
+
+            $(document).on('click', '#addStylist', function() {
+                // post请求
+                let stylist = new FormData()
+
+                stylist.append("stylistName", app.stylistName)
+                stylist.append("realName", app.realName)
+                stylist.append("phone", app.phone)
+                stylist.append("barbershop", app.barbershop)
+                stylist.append("workingYears", app.workingYears)
+                stylist.append("speciality", app.speciality)
+
+                // if (app.hobby == "") {
+                // 	alert("不可留空")
+                //
+                // }
+                if (app.isPassed) {
+                    axios.post('/admin/addStylist/', stylist, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                        }
+                    })
+                        .then(response => {
+                            console.log(response.data)
+                            let result = false;
+                            if (response.data !== -1){
+                                if (app.query !== "") {
+                                    if (app.realName.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1
+                                        || app.barbershop.indexOf(app.query) !== -1) {
+                                        app.total = app.total + 1
+                                        app.group = Math.ceil(app.total / app.size)
+                                        result = true
+                                    }
+                                } else {
+                                    app.total = app.total + 1
+                                    app.group = Math.ceil(app.total / app.size)
+                                    result = true
+                                }
+                                if (result) {
+                                    app.stylists.push(stylist)
+                                    app.stylists[app.stylists.length - 1].stylistId = response.data
+                                    app.stylists[app.stylists.length - 1].stylistName = app.stylistName
+                                    app.stylists[app.stylists.length - 1].realName = app.realName
+                                    app.stylists[app.stylists.length - 1].phone = app.phone
+                                    app.stylists[app.stylists.length - 1].barbershop = app.barbershop
+                                    app.stylists[app.stylists.length - 1].workingYears = app.workingYears
+                                    app.stylists[app.stylists.length - 1].speciality = app.speciality
+                                    app.stylists[app.stylists.length - 1].rate = 5.0
+                                    app.stylists[app.stylists.length - 1].popularity = 100 + "%"
+                                    app.stylists[app.stylists.length - 1].passed = "未通过"
+
+                                }
+                                alert("添加成功")
+                            }
+                            else {
+                                alert("添加失败或手机号已被注册")
+                            }
+                        })
+                        .catch(error => {
+                            alert("发生错误")
+                            console.log(error)
+                        })
+                }
+            })
+
+            $(document).on('click', '#updateStylist', function() {
+                // post请求
+                let stylist = new FormData()
+                stylist.append("stylistId", app.stylistId)
+                stylist.append("stylistName", app.stylistName)
+                stylist.append("realName", app.realName)
+                stylist.append("phone", app.phone)
+                stylist.append("workingYears", app.workingYears)
+                stylist.append("speciality", app.speciality)
+                var barbershopName = document.getElementById("barbershop2").value
+                if (barbershopName !== "") {
+                    stylist.append("barbershop", barbershopName)
+                } else {
+                    stylist.append("barbershop", app.barbershop)
+                }
+                if (app.isPassed) {
+                    axios.post('/admin/updateStylist/', stylist, {
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                        }
+                    })
+                        .then(response => {
+                            if (response.data !== -1){
+                                app.stylists[app.index].stylistId = app.stylistId
+                                app.stylists[app.index].stylistName = app.stylistName
+                                app.stylists[app.index].realName = app.realName
+                                app.stylists[app.index].barbershop = stylist.get("barbershop")
+                                app.stylists[app.index].workingYears = app.workingYears
+                                app.stylists[app.index].speciality = app.speciality
+                                app.stylists[app.index].phone = app.phone
+                            }
+                            else {
+                                alert("更新失败")
+                            }
+                        })
+                        .catch(error => {
+                            alert("更新失败")
+                            console.log(error)
+                        })
+                }
+            })
+
+            $(document).on('click', "#search", function () {
+                console.log(app.query)
+                axios.get('/admin/stylistQuantities?key=' + app.query)
+                    .then(response => {
+                        app.total = response.data
+                        app.group = Math.ceil(app.total / app.size)
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+                axios.get('/admin/allStylist?key=' + app.query + '&page=' + 1)
+                    .then(response => {
+                        let stylists = response.data
+                        app.stylists = stylists
+                        app.currentPage = 1
+                        console.log(app.stylists)
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            })
+        </script>
+    </body>
+</html>

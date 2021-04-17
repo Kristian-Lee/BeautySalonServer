@@ -6,9 +6,9 @@ import com.example.beautysalon.mbg.model.BarbershopExample;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Lee
@@ -32,5 +32,14 @@ public class BarbershopService {
         } else {
             return null;
         }
+    }
+
+    public List<String> getAllBarbershopName() {
+        List<Barbershop> barbershopList = barbershopMapper.selectByExample(new BarbershopExample());
+        List<String> name = new ArrayList<>();
+        barbershopList.forEach(barbershop -> {
+            name.add(barbershop.getBarbershopName());
+        });
+        return name;
     }
 }

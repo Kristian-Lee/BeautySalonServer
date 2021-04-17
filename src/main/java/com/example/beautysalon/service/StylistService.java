@@ -8,6 +8,7 @@ import com.example.beautysalon.mbg.model.*;
 import com.example.beautysalon.response.ResponseBody;
 import com.example.beautysalon.response.ResponseCode;
 import com.example.beautysalon.util.CommonUtil;
+import com.example.beautysalon.vo.StylistVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -260,5 +261,161 @@ public class StylistService {
             return new ResponseBody(ResponseCode.REQUEST_RESERVATION_COMMENT_DATA_SUCCESS, map);
         }
         return new ResponseBody(ResponseCode.REQUEST_RESERVATION_COMMENT_DATA_FAILED, "");
+    }
+
+
+
+    public List<StylistVo> getAllStylist(String key, Integer pageNum) {
+        int pageSize = 5;
+        List<Stylist> stylistList = getStylistQuantities(key);
+        List<StylistVo> stylistVoList = new ArrayList<>();
+        stylistList.forEach(stylist -> {
+            StylistVo stylistVo = new StylistVo();
+            stylistVo.setStylistId(stylist.getStylistId());
+            stylistVo.setStylistName(stylist.getStylistName());
+            stylistVo.setRealName(stylist.getRealName());
+            stylistVo.setPhone(stylist.getPhone());
+            stylistVo.setBarbershop(barbershopMapper.selectByPrimaryKey(stylist.getBarbershopId()).getBarbershopName());
+            stylistVo.setSpeciality(stylist.getSpeciality());
+            stylistVo.setWorkingYears(String.valueOf(stylist.getWorkingYears()));
+            EvaluationExample example = new EvaluationExample();
+            example.createCriteria().andStylistIdEqualTo(stylist.getStylistId());
+            List<Evaluation> evaluationList = evaluationMapper.selectByExample(example);
+            stylistVo.setRate(String.valueOf(evaluationList.get(0).getRate()));
+            stylistVo.setPopularity(evaluationList.get(0).getPopularity() + "%");
+            if (stylist.getIsPassed() == 0) {
+                stylistVo.setPassed("未通过");
+            } else {
+                stylistVo.setPassed("通过");
+            }
+
+            stylistVoList.add(stylistVo);
+        });
+        int end = pageNum * pageSize;
+        if (end > stylistVoList.size()) {
+            end = stylistVoList.size();
+        }
+        List<StylistVo> result = new ArrayList<>();
+
+        for (int i = (pageNum - 1) * pageSize; i < end; i++) {
+            result.add(stylistVoList.get(i));
+        }
+        System.out.println("共" + result.size() + "个数据");
+        return result;
+    }
+
+    public List<Stylist> getStylistQuantities(String key) {
+        StylistExample stylistExample = new StylistExample();
+        StylistExample stylistExample1 = new StylistExample();
+        StylistExample.Criteria criteria = stylistExample1.createCriteria();
+        BarbershopExample barbershopExample = new BarbershopExample();
+        barbershopExample.createCriteria().andBarbershopNameLike("%" + key + "%");
+        List<Barbershop> barbershopList = barbershopMapper.selectByExample(barbershopExample);
+        List<Integer> idList = new ArrayList<>();
+        barbershopList.forEach(barbershop -> {
+            idList.add(barbershop.getBarbershopId());
+        });
+        if (!"".equals(key)) {
+            stylistExample.createCriteria().andPhoneLike("%" + key + "%");
+            criteria.andRealNameLike("%" + key + "%");
+            stylistExample.or(criteria);
+        }
+        if (idList.size() > 0) {
+            StylistExample stylistExample2 = new StylistExample();
+            StylistExample.Criteria criteria1 = stylistExample2.createCriteria();
+            criteria1.andBarbershopIdIn(idList);
+            stylistExample.or(criteria1);
+        }
+        return stylistMapper.selectByExample(stylistExample);
+    }
+
+    public String deleteStylist(Integer stylistId){
+        int i = stylistMapper.deleteByPrimaryKey(stylistId);
+        if (i == -1){
+            return "删除失败";
+        }
+        return "删除成功";
+    }
+
+    public int addStylist(StylistVo stylistVo) {
+
+        //查有没有重复用户
+        UserExample userExample = new UserExample();
+        userExample.createCriteria().andPhoneEqualTo(stylistVo.getPhone());
+        List<User> userList = userMapper.selectByExample(userExample);
+        if (userList != null && userList.size() > 0) {
+            return -1;
+        }
+
+        StylistExample stylistExample = new StylistExample();
+        stylistExample.createCriteria().andPhoneEqualTo(stylistVo.getPhone());
+        List<Stylist> stylistList = stylistMapper.selectByExample(stylistExample);
+        if (stylistList != null && stylistList.size() > 0) {
+            return -1;
+        }
+
+
+        Stylist stylist = new Stylist();
+        stylist.setAvatar("http://www.xiaobais.net:8080/image/dd9636aedf8f196b1924830f6bd545a4/avatar/1618320453810.jpg");
+        stylist.setPhone(stylistVo.getPhone());
+        stylist.setStylistName(stylistVo.getStylistName());
+        stylist.setRealName(stylistVo.getRealName());
+        stylist.setIsPassed(0);
+        stylist.setRole(1);
+        stylist.setWorkingYears(Integer.parseInt(stylistVo.getWorkingYears()));
+        stylist.setPassword(CommonUtil.encrypt("123456"));
+        stylist.setSpeciality(stylistVo.getSpeciality());
+        BarbershopExample barbershopExample = new BarbershopExample();
+        barbershopExample.createCriteria().andBarbershopNameEqualTo(stylistVo.getBarbershop());
+        stylist.setBarbershopId(barbershopMapper.selectByExample(barbershopExample).get(0).getBarbershopId());
+
+        if (stylistMapper.insert(stylist) != -1) {
+            Evaluation evaluation = new Evaluation();
+            evaluation.setRate(5.f);
+            evaluation.setQuantities(0);
+            evaluation.setPopularity(100.00f);
+            evaluation.setPositive(0);
+            evaluation.setStylistId(stylist.getStylistId());
+            evaluationMapper.insert(evaluation);
+            return stylist.getStylistId();
+        } else {
+            return -1;
+        }
+    }
+
+    public int examineStylist(Integer stylistId) {
+        Stylist stylist = stylistMapper.selectByPrimaryKey(stylistId);
+        stylist.setIsPassed(1);
+        return stylistMapper.updateByPrimaryKeySelective(stylist);
+    }
+
+    public int updateStylist(StylistVo stylistVo) {
+        StylistExample stylistExample = new StylistExample();
+        stylistExample.createCriteria()
+                .andPhoneEqualTo(stylistVo.getPhone())
+                .andStylistIdNotEqualTo(stylistVo.getStylistId());
+        List<Stylist> stylistList = stylistMapper.selectByExample(stylistExample);
+        if (stylistList != null && stylistList.size() > 0) {
+            return -1;
+        }
+        UserExample userExample = new UserExample();
+        userExample.createCriteria().andPhoneEqualTo(stylistVo.getPhone());
+        List<User> userList = userMapper.selectByExample(userExample);
+        if (userList != null && userList.size() > 0) {
+            return -1;
+        }
+
+
+        Stylist stylist = new Stylist();
+        stylist.setStylistId(stylistVo.getStylistId());
+        stylist.setStylistName(stylistVo.getStylistName());
+        stylist.setRealName(stylistVo.getRealName());
+        stylist.setSpeciality(stylistVo.getSpeciality());
+        BarbershopExample barbershopExample = new BarbershopExample();
+        barbershopExample.createCriteria().andBarbershopNameEqualTo(stylistVo.getBarbershop());
+        stylist.setBarbershopId(barbershopMapper.selectByExample(barbershopExample).get(0).getBarbershopId());
+        stylist.setWorkingYears(Integer.parseInt(stylistVo.getWorkingYears()));
+        stylist.setPhone(stylistVo.getPhone());
+        return stylistMapper.updateByPrimaryKeySelective(stylist);
     }
 }

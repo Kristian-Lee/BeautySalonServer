@@ -99,9 +99,12 @@ public class UserService {
         }
     }
 
-    public List<UserVo> getAllUser(Integer pageNum){
+    public List<UserVo> getAllUser(String key, Integer pageNum){
         int pageSize = 5;
-        List<User> users = userMapper.selectByExample(new UserExample());
+
+
+
+        List<User> users = getUserQuantities(key);
         List<UserVo> userVos = new ArrayList<>();
         users.forEach(user -> {
             UserVo userVo = new UserVo();
@@ -263,8 +266,16 @@ public class UserService {
         }
     }
 
-    public int getUserQuantities() {
-        List<User> userList = userMapper.selectByExample(new UserExample());
-        return userList.size();
+    public List<User> getUserQuantities(String key) {
+        UserExample userExample = new UserExample();
+        UserExample userExample1 = new UserExample();
+        UserExample.Criteria criteria = userExample1.createCriteria();
+        if (!"".equals(key)) {
+            userExample.createCriteria().andPhoneLike("%" + key + "%");
+            criteria.andUserNameLike("%" + key + "%");
+            userExample.or(criteria);
+        }
+        List<User> userList = userMapper.selectByExample(userExample);
+        return userList;
     }
 }
