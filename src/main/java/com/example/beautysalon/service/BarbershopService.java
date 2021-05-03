@@ -1,11 +1,14 @@
 package com.example.beautysalon.service;
 
 import com.example.beautysalon.mbg.mapper.BarbershopMapper;
-import com.example.beautysalon.mbg.model.Barbershop;
-import com.example.beautysalon.mbg.model.BarbershopExample;
+import com.example.beautysalon.mbg.mapper.StylistMapper;
+import com.example.beautysalon.mbg.model.*;
+import com.example.beautysalon.vo.BarbershopVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +22,8 @@ import java.util.List;
 public class BarbershopService {
     @Resource
     private BarbershopMapper barbershopMapper;
+    @Resource
+    private StylistMapper stylistMapper;
 
     public HashMap<String, Integer> selectBarbershopName() {
         List<Barbershop> barbershops = barbershopMapper.selectByExample(new BarbershopExample());
@@ -41,5 +46,75 @@ public class BarbershopService {
             name.add(barbershop.getBarbershopName());
         });
         return name;
+    }
+
+    public List<BarbershopVo> getAllBarbershop(String key, Integer pageNum) {
+        int pageSize = 5;
+        List<Barbershop> barbershopList = getBarbershopQuantities(key);
+        List<BarbershopVo> barbershopVoList = new ArrayList<>();
+        barbershopList.forEach(barbershop -> {
+            BarbershopVo barbershopVo = new BarbershopVo();
+            barbershopVo.setBarbershopId(barbershop.getBarbershopId());
+            barbershopVo.setBarbershopName(barbershop.getBarbershopName());
+            barbershopVo.setAddress(barbershop.getAddress());
+            barbershopVo.setOpen(new SimpleDateFormat("HH:mm").format(barbershop.getOpen()));
+            barbershopVo.setClose(new SimpleDateFormat("HH:mm").format(barbershop.getClose()));
+            barbershopVoList.add(barbershopVo);
+        });
+        int end = pageNum * pageSize;
+        if (end > barbershopVoList.size()) {
+            end = barbershopVoList.size();
+        }
+        List<BarbershopVo> result = new ArrayList<>();
+        for (int i = (pageNum - 1) * pageSize; i < end; i++) {
+            result.add(barbershopVoList.get(i));
+        }
+        return result;
+    }
+
+    public List<Barbershop> getBarbershopQuantities(String key) {
+        key = "%" + key + "%";
+        BarbershopExample example = new BarbershopExample();
+        BarbershopExample.Criteria criteria = new BarbershopExample().createCriteria();
+        example.createCriteria().andBarbershopNameLike(key);
+        criteria.andAddressLike(key);
+        example.or(criteria);
+        return barbershopMapper.selectByExample(example);
+    }
+
+    public int updateBarbershop(BarbershopVo barbershopVo) throws ParseException {
+        Barbershop barbershop = barbershopMapper.selectByPrimaryKey(barbershopVo.getBarbershopId());
+        if (barbershop != null) {
+            barbershop.setBarbershopName(barbershopVo.getBarbershopName());
+            barbershop.setAddress(barbershopVo.getAddress());
+            barbershop.setOpen(new SimpleDateFormat("HH:mm").parse(barbershopVo.getOpen()));
+            barbershop.setClose(new SimpleDateFormat("HH:mm").parse(barbershopVo.getClose()));
+            return barbershopMapper.updateByPrimaryKeySelective(barbershop);
+        }
+        return -1;
+    }
+
+    public int addBarbershop(BarbershopVo barbershopVo) throws ParseException {
+        Barbershop barbershop = new Barbershop();
+        barbershop.setBarbershopName(barbershopVo.getBarbershopName());
+        barbershop.setAddress(barbershopVo.getAddress());
+        barbershop.setOpen(new SimpleDateFormat("HH:mm").parse(barbershopVo.getOpen()));
+        barbershop.setClose(new SimpleDateFormat("HH:mm").parse(barbershopVo.getClose()));
+        barbershop.setOwnerId(1);
+        if (barbershopMapper.insertSelective(barbershop) != -1) {
+            return barbershop.getBarbershopId();
+        }
+        return -1;
+    }
+
+    public int deleteBarbershop(Integer barbershopId) {
+        StylistExample stylistExample = new StylistExample();
+        stylistExample.createCriteria()
+                .andBarbershopIdEqualTo(barbershopId);
+        List<Stylist> stylistList = stylistMapper.selectByExample(stylistExample);
+        if (stylistList != null && stylistList.size() > 0) {
+            return -1;
+        }
+        return barbershopMapper.deleteByPrimaryKey(barbershopId);
     }
 }

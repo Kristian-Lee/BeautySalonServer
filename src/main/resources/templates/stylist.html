@@ -11,21 +11,7 @@
     </head>
     <body>
         <div id="app">
-            <div class="ui fixed inverted menu">
-                <div class="ui container" style="width: 85%">
-                    <a href="" class="header item">
-                        <img class="logo" th:src="@{/img/doge.png}">
-                    </a>
-                    <a href="fixed.php#" class="item">家余</a>
-                    <a href="fixed.php#" class="item">主页</a>
-                    <a class="item" href="/admin/index">用户管理</a>
-                    <a class="item" href="/admin/stylist">发型师管理</a>
-                    <a class="item" href="fixed.php#">店铺管理</a>
-                    <a class="item" href="/admin/reservation">预约管理</a>
-                    <a class="item" href="fixed.php#">优惠券管理</a>
-                    <a class="item" href="fixed.php#">资讯管理</a>
-                </div>
-            </div>
+            <div th:replace="head :: head"></div>
             <br><br><br><br>
             <div class="ui container" style="width: 85%;" th:align="right">
                 <div class="ui search">
@@ -179,7 +165,7 @@
                         });
 
                     let name
-                    axios.get('/admin/allBarbershop')
+                    axios.get('/admin/allBarbershopName')
                         .then(response => {
                             name = response.data
                             if (name.length > 0) {
@@ -233,7 +219,7 @@
                         $('.ui.update.modal')
                             .modal({
                                 closable  : false,
-                                onDeny    : function(){
+                                onDeny    : function() {
                                     return true;
                                 },
                                 onApprove : function() {

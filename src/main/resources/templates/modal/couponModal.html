@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <div class="ui delete modal" style="width: 40%;" th:fragment="deleteCouponModal">
+        <i class="close icon"></i>
+        <div class="header">
+            确认删除该优惠券所有信息？
+        </div>
+        <div class="actions">
+            <input type="text" name="couponId" hidden="hidden" :value="couponId">
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui positive right labeled icon button" id="deleteCoupon">
+                提交
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui add modal" th:fragment="addCouponModal">
+        <i class="close icon"></i>
+        <div class="header">
+            添加优惠券信息
+        </div>
+        <div class="content">
+            <div class="ui form">
+                <div class="field">
+
+                    <label>类型</label>
+                    <div class="field">
+                        <div class="ui fluid selection dropdown">
+                            <input type="hidden" id="type">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">选择优惠券类型</div>
+                            <div class="menu">
+                                <div class="item" data-value="满减券">满减券</div>
+                                <div class="item" data-value="折扣券">折扣券</div>
+                            </div>
+                        </div>
+                        <div class="ui pointing red basic label" v-if="typeMsg != ''">
+                            {{typeMsg}}
+                        </div>
+                    </div>
+
+                    <label>面值/折扣</label>
+                    <div class="field">
+                        <input type="number" name="value" step="1" placeholder="仅可输入正整数，带小数将向上取整" v-model="value">
+                        <div class="ui pointing red basic label" v-if="valueMsg != ''">
+                            {{valueMsg}}
+                        </div>
+                    </div>
+
+                    <label>满减门槛</label>
+                    <div class="field">
+                        <input type="number" name="upTo" step="1" placeholder="仅可输入正整数，带小数将向上取整" v-model="upTo">
+                        <div class="ui pointing red basic label" v-if="upToMsg != ''">
+                            {{upToMsg}}
+                        </div>
+                    </div>
+
+                    <label>起始日期</label>
+                    <div class="field">
+                        <input type="date" name="dateFrom" placeholder="必填" v-model="dateFrom">
+                        <div class="ui pointing red basic label" v-if="dateFromMsg != ''">
+                            {{dateFromMsg}}
+                        </div>
+                    </div>
+
+                    <label>截止日期</label>
+                    <div class="field">
+                        <input type="date" name="dateTo" placeholder="必填" v-model="dateTo">
+                        <div class="ui pointing red basic label" v-if="dateToMsg != ''">
+                            {{dateToMsg}}
+                        </div>
+                    </div>
+
+                    <label>总数</label>
+                    <div class="field">
+                        <input type="number" name="totalNum" min="0" step="1" placeholder="仅可输入正整数，带小数将向上取整" v-model="totalNum">
+                        <div class="ui pointing red basic label" v-if="totalNumMsg != ''">
+                            {{totalNumMsg}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="ui black deny button">
+                取消
+            </div>
+            <div class="ui right labeled icon positive button" id="addCoupon">
+                提交
+                <i class="checkmark icon"></i>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

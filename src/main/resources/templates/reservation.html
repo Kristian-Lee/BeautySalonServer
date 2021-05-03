@@ -1,167 +1,231 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="utf-8">
-    <title>预约管理</title>
-    <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
-    <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
-    <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
-</head>
+    <head>
+        <meta charset="utf-8">
+        <title>预约管理</title>
+        <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+        <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+    </head>
 <body>
-<div id="app">
-    <div class="ui fixed inverted menu">
-        <div class="ui container" style="width: 85%">
-            <a href="" class="header item">
-                <img class="logo" th:src="@{/img/doge.png}">
-            </a>
-            <a href="fixed.php#" class="item">家余</a>
-            <a href="fixed.php#" class="item">主页</a>
-            <a class="item" href="/admin/index">用户管理</a>
-            <a class="item" href="/admin/stylist">发型师管理</a>
-            <a class="item" href="fixed.php#">店铺管理</a>
-            <a class="item" href="/admin/reservation">预约管理</a>
-            <a class="item" href="fixed.php#">优惠券管理</a>
-            <a class="item" href="fixed.php#">资讯管理</a>
-        </div>
-    </div>
-    <br><br><br><br>
-    <div class="ui container" style="width: 85%;" th:align="right">
-        <div class="ui search">
-            <div class="ui positive icon input">
-                <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索预约" v-model="query">
-                <i class="search link icon" id="search"></i>
-            </div>
-            <div class="results"></div>
-        </div>
-    </div>
-
-    <br><br>
-    <div class="ui container" style="width: 85%;">
-        <div class="ui fluid raised segment">
-            <table class="ui celled table">
-                <thead>
-                <tr>
-                    <th>序号</th>
-                    <th>id</th>
-                    <th>用户名</th>
-                    <th>发型师姓名</th>
-                    <th>店名</th>
-                    <th>创建时间</th>
-                    <th>预约时间</th>
-                    <th>预约服务</th>
-                    <th>预计耗时</th>
-                    <th>状态</th>
-                    <th>总价</th>
-                    <th>积分抵扣</th>
-                    <th>优惠券抵扣</th>
-                    <th>实付</th>
-                    <th>支付时间</th>
-                    <th>
-                        操作
-<!--                        <div class="ui green right ribbon large label">-->
-<!--                            <a @click="add">添加发型师</a>-->
-<!--                        </div>-->
-                    </th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="(reserve,index) in reserves" :key="'df' + index">
-                    <td>{{index}}</td>
-                    <td>{{reserve.reserveId}}</td>
-                    <td>{{reserve.userName}}</td>
-                    <td>{{reserve.stylistName}}</td>
-                    <td>{{reserve.barbershop}}</td>
-                    <td>{{reserve.createDate}}</td>
-                    <td>{{reserve.serveDate}}</td>
-                    <td>{{reserve.services}}</td>
-                    <td>{{reserve.takeUp}}</td>
-                    <td>{{reserve.status}}</td>
-                    <td>{{reserve.origin}}</td>
-                    <td>{{reserve.points}}</td>
-                    <td>{{reserve.coupon}}</td>
-                    <td>{{reserve.realPay}}</td>
-                    <td>{{reserve.payDate}}</td>
-                    <td>
-
-                        <button class="ui blue button" @click="toCancel(index)" v-if="reserve.enableCancel === 'true'">取消</button>
-                        <button class="ui red button" @click="toDelete(index)">删除</button>
-<!--                        <button class="ui blue button" @click="examine(index)" v-if="stylist.passed === '未通过'">审核</button>-->
-                    </td>
-                </tr>
-                </tbody>
-                <tfoot>
-                <tr>
-                    <th colspan="16">
-                        <div class="ui right floated pagination menu">
-                            <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
-                                <i class="left chevron icon"></i>
-                            </a>
-
-                            <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
-                            <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
-
-
-                            <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
-                            <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
-                            <a class="item active">{{currentPage}}</a>
-                            <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
-                            <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
-
-
-                            <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
-                            <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
-                            <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
-                                <i class="right chevron icon"></i>
-                            </a>
-                        </div>
-                    </th>
-                </tr>
-                </tfoot>
-            </table>
-            <div class="ui container" style="width: 100%;" th:align="right">
-                <label>
-                    共计 {{group}} 页， {{total}} 条数据
-                </label>
+    <div id="app">
+        <div th:replace="head :: head"></div>
+        <br><br><br><br>
+        <div class="ui container" style="width: 85%;" th:align="right">
+            <div class="ui search">
+                <div class="ui positive icon input">
+                    <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索预约" v-model="query">
+                    <i class="search link icon" id="search"></i>
+                </div>
+                <div class="results"></div>
             </div>
         </div>
+
+        <br><br>
+        <div class="ui container" style="width: 85%;">
+            <div class="ui fluid raised segment">
+                <table class="ui celled table">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>id</th>
+                        <th>用户名</th>
+                        <th>发型师姓名</th>
+                        <th>店名</th>
+                        <th>创建时间</th>
+                        <th>预约时间</th>
+                        <th>预约服务</th>
+                        <th>预计耗时</th>
+                        <th>状态</th>
+                        <th>总价</th>
+                        <th>积分抵扣</th>
+                        <th>优惠券抵扣</th>
+                        <th>实付</th>
+                        <th>支付时间</th>
+                        <th>
+                            操作
+    <!--                        <div class="ui green right ribbon large label">-->
+    <!--                            <a @click="add">添加发型师</a>-->
+    <!--                        </div>-->
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(reserve,index) in reserves" :key="'df' + index">
+                        <td>{{index}}</td>
+                        <td>{{reserve.reserveId}}</td>
+                        <td>{{reserve.userName}}</td>
+                        <td>{{reserve.stylistName}}</td>
+                        <td>{{reserve.barbershop}}</td>
+                        <td>{{reserve.createDate}}</td>
+                        <td>{{reserve.serveDate}}</td>
+                        <td>{{reserve.services}}</td>
+                        <td>{{reserve.takeUp}}</td>
+                        <td>{{reserve.status}}</td>
+                        <td>{{reserve.origin}}</td>
+                        <td>{{reserve.points}}</td>
+                        <td>{{reserve.coupon}}</td>
+                        <td>{{reserve.realPay}}</td>
+                        <td>{{reserve.payDate}}</td>
+                        <td>
+
+                            <button class="ui blue button" @click="toCancel(index)" v-if="reserve.enableCancel === 'true'">取消</button>
+                            <button class="ui red button" @click="toDelete(index)">删除</button>
+    <!--                        <button class="ui blue button" @click="examine(index)" v-if="stylist.passed === '未通过'">审核</button>-->
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th colspan="16">
+                            <div class="ui right floated pagination menu">
+                                <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
+                                    <i class="left chevron icon"></i>
+                                </a>
+
+                                <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+                                <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+
+
+                                <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+                                <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
+                                <a class="item active">{{currentPage}}</a>
+                                <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+                                <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+
+
+                                <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+                                <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+                                <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
+                                    <i class="right chevron icon"></i>
+                                </a>
+                            </div>
+                        </th>
+                    </tr>
+                    </tfoot>
+                </table>
+                <div class="ui container" style="width: 100%;" th:align="right">
+                    <label>
+                        共计 {{group}} 页， {{total}} 条数据
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div th:replace="modal/reservationModal :: deleteReservationModal"></div>
+        <div th:replace="modal/reservationModal :: cancelReservationModal"></div>
     </div>
-    <div th:replace="modal/reservationModal :: deleteReservationModal"></div>
-    <div th:replace="modal/reservationModal :: cancelReservationModal"></div>
-</div>
 
 
-<script type="text/javascript">
-    let app = new Vue({
-        el: '#app',
-        data: {
-            index: 0,
-            reserveId: -1,
-            reserves: [],
-            userName: "",
-            stylistName: "",
-            barbershop: "",
-            createDate: "",
-            serveDate: "",
-            services: "",
-            takeUp: "",
-            status: "",
-            origin: "",
-            points: "",
-            coupon: "",
-            realPay: "",
-            payDate: "",
-            enableCancel: "",
-            query: "",
-            total: 0,
-            group: 0,
-            size: 5,
-            currentPage: 1,
+    <script type="text/javascript">
+        let app = new Vue({
+            el: '#app',
+            data: {
+                index: 0,
+                reserveId: -1,
+                reserves: [],
+                userName: "",
+                stylistName: "",
+                barbershop: "",
+                createDate: "",
+                serveDate: "",
+                services: "",
+                takeUp: "",
+                status: "",
+                origin: "",
+                points: "",
+                coupon: "",
+                realPay: "",
+                payDate: "",
+                enableCancel: "",
+                query: "",
+                total: 0,
+                group: 0,
+                size: 5,
+                currentPage: 1,
 
-        },
-        mounted: function() {
-            axios.get('/admin/reservationQuantities?key=' + '')
+            },
+            mounted: function() {
+                axios.get('/admin/reservationQuantities?key=' + '')
+                    .then(response => {
+                        app.total = response.data
+                        app.group = Math.ceil(app.total / app.size)
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+
+                axios.get('/admin/allReservation?key=' + '' + '&page=' + 1 )
+                    .then(response => {
+                        let reserves = response.data
+                        app.currentPage = 1
+                        this.reserves = reserves
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            },
+            methods: {
+                toPage: function (pageNum) {
+                    console.log(app.query)
+                    app.currentPage = pageNum
+                    axios.get('/admin/allReservation?key=' + app.query + '&page=' + app.currentPage)
+                        .then(response => {
+                            app.reserves = response.data
+                            console.log(app.reserves)
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                },
+
+                toDelete: function (index) {
+                    this.reserveId = this.reserves[index].reserveId
+                    this.index = index
+                    $('.ui.delete.modal').modal('show');
+                },
+
+                toCancel: function (index) {
+                    this.reserveId = this.reserves[index].reserveId
+                    this.index = index
+                    $('.ui.cancel.modal').modal('show');
+                },
+            }
+        })
+
+        $(document).on('click', '#deleteReservation', function() {
+            axios.get('/admin/deleteReservation?reserveId=' + app.reserveId)
+                .then(response => {
+
+                    if (response.data !== -1) {
+                        app.reserves.splice(app.index, 1)
+                        app.total = app.total - 1
+                        app.group = Math.ceil(app.total / app.size)
+                    } else {
+                        alert("删除失败")
+                    }
+                })
+                .catch(error => console.log(error))
+        })
+
+        $(document).on('click', '#cancelReservation', function() {
+            axios.get('/admin/cancelReservation?reserveId=' + app.reserveId)
+                .then(response => {
+
+                    if (response.data !== -1) {
+                        app.reserves[app.index].status = "已取消"
+                        app.reserves[app.index].enableCancel = ""
+                    } else {
+                        alert("删除失败")
+                    }
+                })
+                .catch(error => console.log(error))
+        })
+
+        $(document).on('click', "#search", function () {
+            console.log(app.query)
+            axios.get('/admin/reservationQuantities?key=' + app.query)
                 .then(response => {
                     app.total = response.data
                     app.group = Math.ceil(app.total / app.size)
@@ -169,94 +233,16 @@
                 .catch(function(error) {
                     console.log(error);
                 });
-
-            axios.get('/admin/allReservation?key=' + '' + '&page=' + 1 )
+            axios.get('/admin/allReservation?key=' + app.query + '&page=' + 1)
                 .then(response => {
-                    let reserves = response.data
+                    app.reserves = response.data
                     app.currentPage = 1
-                    this.reserves = reserves
+                    console.log(app.reserves)
                 })
                 .catch(function(error) {
                     console.log(error);
                 });
-        },
-        methods: {
-            toPage: function (pageNum) {
-                console.log(app.query)
-                app.currentPage = pageNum
-                axios.get('/admin/allReservation?key=' + app.query + '&page=' + app.currentPage)
-                    .then(response => {
-                        app.reserves = response.data
-                        console.log(app.reserves)
-                    })
-                    .catch(function(error) {
-                        console.log(error);
-                    });
-            },
-
-            toDelete: function (index) {
-                this.reserveId = this.reserves[index].reserveId
-                this.index = index
-                $('.ui.delete.modal').modal('show');
-            },
-
-            toCancel: function (index) {
-                this.reserveId = this.reserves[index].reserveId
-                this.index = index
-                $('.ui.cancel.modal').modal('show');
-            },
-        }
-    })
-
-    $(document).on('click', '#deleteReservation', function() {
-        axios.get('/admin/deleteReservation?reserveId=' + app.reserveId)
-            .then(response => {
-
-                if (response.data !== -1) {
-                    app.reserves.splice(app.index, 1)
-                    app.total = app.total - 1
-                    app.group = Math.ceil(app.total / app.size)
-                } else {
-                    alert("删除失败")
-                }
-            })
-            .catch(error => console.log(error))
-    })
-
-    $(document).on('click', '#cancelReservation', function() {
-        axios.get('/admin/cancelReservation?reserveId=' + app.reserveId)
-            .then(response => {
-
-                if (response.data !== -1) {
-                    app.reserves[app.index].status = "已取消"
-                    app.reserves[app.index].enableCancel = ""
-                } else {
-                    alert("删除失败")
-                }
-            })
-            .catch(error => console.log(error))
-    })
-
-    $(document).on('click', "#search", function () {
-        console.log(app.query)
-        axios.get('/admin/reservationQuantities?key=' + app.query)
-            .then(response => {
-                app.total = response.data
-                app.group = Math.ceil(app.total / app.size)
-            })
-            .catch(function(error) {
-                console.log(error);
-            });
-        axios.get('/admin/allReservation?key=' + app.query + '&page=' + 1)
-            .then(response => {
-                app.reserves = response.data
-                app.currentPage = 1
-                console.log(app.reserves)
-            })
-            .catch(function(error) {
-                console.log(error);
-            });
-    })
-</script>
+        })
+    </script>
 </body>
 </html>

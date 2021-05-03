@@ -25,6 +25,7 @@ public class CommentController {
 
     @PostMapping("comment/data")
     public ResponseBody getCommentData(@RequestBody String map) {
+
         return commentService.selectCommentByStylist(map);
     }
 

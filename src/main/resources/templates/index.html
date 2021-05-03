@@ -1,607 +1,234 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-	<head>
-		<meta charset="utf-8">
-		<title>用户管理</title>
-		<link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
-		<script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
-		<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-		<script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
-		<script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
-	</head>
-	<body>
-		<div id="app">
-			<div class="ui fixed inverted menu">
-				<div class="ui container" style="width: 85%">
-					<a href="" class="header item">
-						<img class="logo" th:src="@{/img/doge.png}">
-					</a>
-					<a href="fixed.php#" class="item">家余</a>
-					<a href="fixed.php#" class="item">主页</a>
-					<a class="item" href="/admin/index">用户管理</a>
-					<a class="item" href="/admin/stylist">发型师管理</a>
-					<a class="item" href="fixed.php#">店铺管理</a>
-					<a class="item" href="/admin/reservation">预约管理</a>
-					<a class="item" href="fixed.php#">优惠券管理</a>
-					<a class="item" href="fixed.php#">资讯管理</a>
-<!--					<div class="ui simple dropdown item">-->
-<!--						功能 <i class="dropdown icon"></i>-->
-<!--						<div class="menu">-->
-<!--						</div>-->
-<!--					</div>-->
-				</div>
-			</div>
-			<br><br><br><br>
-			<div class="ui container" style="width: 85%;" th:align="right">
-				<div class="ui search">
-						<div class="ui positive icon input">
-							<input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索用户" v-model="query">
-								<i class="search link icon" id="search"></i>
-						</div>
-					<div class="results"></div>
-				</div>
-			</div>
+    <head>
+        <meta charset="utf-8">
+        <title>美容美发会员系统后台管理</title>
+        <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+        <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+        <!-- 引入 echarts.js -->
+        <script type="text/javascript" th:src="@{/js/echarts.min.js}"></script>
+    </head>
+    <body>
+        <div id="app">
+            <div th:replace="head :: head"></div>
+            <br><br><br><br>
+            <br><br>
+            <div class="ui container" style="width: 600px;" th:align="center">
+                <div class="ui large statistic" style="width: 40%;float: left">
+                    <div class="value" id="passengerFlow">
+                        {{passengerFlow}}
+                    </div>
+                    <div class="label">
+                        今日客流量
+                    </div>
+                </div>
 
-			<br><br>
-			<div class="ui container" style="width: 85%;">
-				<div class="ui fluid raised segment">
-					<table class="ui celled table">
-						<thead>
-							<tr>
-								<th>序号</th>
-								<th>id</th>
-								<th>用户名</th>
-								<th>生日</th>
-								<th>手机号</th>
-								<th>兴趣偏好</th>
-								<th>积分</th>
-								<th>余额</th>
-								<th>最后签到时间</th>
-								<th>
-									操作
-									<div class="ui green right ribbon large label">
-										<a @click="add">添加用户</a>
-									</div>
-								</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr v-for="(user,index) in users" :key="'df' + index">
-								<td>{{index}}</td>
-								<td>{{user.userId}}</td>
-								<td>{{user.username}}</td>
-								<td>{{user.birthday}}</td>
-								<td>{{user.phone}}</td>
-								<td>{{user.hobby}}</td>
-								<td>{{user.points}}</td>
-								<td>{{user.balance}}</td>
-								<td>{{user.lastSignIn}}</td>
-								<td>
-									<button class="ui green button" @click="toUpdate(index)">更新</button>
-									<button class="ui red button" @click="toDelete(index)">删除</button>
-								</td>
-							</tr>
-						</tbody>
-						<tfoot>
-							<tr>
-								<th colspan="10">
-									<div class="ui right floated pagination menu">
-										<a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
-											<i class="left chevron icon"></i>
-										</a>
+                <div class="ui large statistic" style="width: 40%;float: right">
+                    <div class="value" id="total">
+                        {{turnOver}}
+                    </div>
+                    <div class="label">
+                        今日营业额
+                    </div>
+                </div>
+            </div>
+            <br><br><br><br><br><br>
+            <div class="ui container" style="width: 85%" th:align="right">
+                <div class="ui selection dropdown">
+                    <input type="hidden" id="barbershop">
+                    <i class="dropdown icon"></i>
+                    <div class="default text">{{barbershopName}}</div>
+                    <div class="menu" id="addItem">
+                    </div>
+                </div>
+            </div>
+            <br><br>
+            <div class="ui container" style="width: 1200px;" th:align="center">
+                <!-- 为ECharts准备一个具备大小（宽高）的Dom -->
+                <div id="barChart" style="width: 600px;height:400px;float:left"></div>
+                <div id="lineChart" style="width: 600px;height:400px;float:right"></div>
+            </div>
+        </div>
 
-										<a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
-										<a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+        <script type="text/javascript">
+            let app = new Vue({
+                el: '#app',
+                data: {
+                    turnOvers: [],
+                    date: [],
+                    passengerFlows: [],
+                    turnOver: "40,000",
+                    passengerFlow: "300",
+                    barbershopName: "",
+                    barbershops: []
+                },
+                mounted: function() {
 
+                    let name
+                    axios.get('/admin/allBarbershopName')
+                        .then(response => {
+                            name = response.data
+                            this.barbershops = name
+                            this.barbershopName = name[0]
+                            if (name.length > 0) {
+                                for (var i = 0; i < name.length; i++){
+                                    $("#addItem").append("<div class='item' data-value="+name[i]+">"+name[i]+"</div>")
+                                }
+                            }
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                    $('.ui.selection.dropdown').dropdown();
+                    axios.get('/admin/allPassengerFlow')
+                        .then(response => {
+                            this.passengerFlows = response.data
+                            this.passengerFlow = this.passengerFlows[this.passengerFlows.length - 1]
+                            barChart.setOption({
+                                series: [{
+                                    name: '客流量',
+                                    type: 'bar',
+                                    data: this.passengerFlows
+                                }]
+                            })
+                            lineChart.setOption({
+                                series: [{
+                                    name: '客流量',
+                                    type: 'line',
+                                    data: this.passengerFlows
+                                }]
+                            })
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
 
-										<a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
-										<a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
-										<a class="item active">{{currentPage}}</a>
-										<a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
-										<a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+                    axios.get('/admin/Date')
+                        .then(response => {
+                            this.date = response.data
+                            lineChart.setOption({
+                                xAxis: {
+                                    data: this.date
+                                }
+                            })
+                            barChart.setOption({
+                                xAxis: {
+                                    data: this.date
+                                }
+                            })
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
 
+                    axios.get('/admin/allTurnOver')
+                        .then(response => {
+                            this.turnOvers = response.data
+                            this.turnOver = this.turnOvers[this.turnOvers.length - 1]
+                            barChart.setOption({
+                                series: [{
+                                    name: '营业额',
+                                    type: 'bar',
+                                    data: this.turnOvers
+                                }]
+                            })
+                            lineChart.setOption({
+                                series: [{
+                                    name: '营业额',
+                                    type: 'line',
+                                    data: this.turnOvers
+                                }]
+                            })
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
 
-										<a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
-										<a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
-										<a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
-											<i class="right chevron icon"></i>
-										</a>
-									</div>
-								</th>
-							</tr>
-						</tfoot>
-					</table>
-					<div class="ui container" style="width: 100%;" th:align="right">
-						<label>
-							共计 {{group}} 页， {{total}} 条数据
-						</label>
-					</div>
-				</div>
-			</div>
-			<div th:replace="modal/userModal :: deleteUserModal"></div>
-			<div th:replace="modal/userModal :: updateUserModal"></div>
-			<div th:replace="modal/userModal :: addUserModal"></div>
-		</div>
+                },
+                methods: {
 
-
-		<script type="text/javascript">
-			let app = new Vue({
-				el: '#app',
-				data: {
-					userId: -1,
-					users: [],
-					username: "家余",
-					birthday: "2021-04-11",
-					hobby: "",
-					points: 0,
-					balance: 0,
-					phone: "",
-					index: 0,
-					lastSignIn: "",
-					usernameMessage: "",
-					phoneFlag: false,
-					birthdayFlag: false,
-					isPassed: true,
-					query: "",
-					total: 0,
-					group: 0,
-					size: 5,
-					currentPage: 1,
-
-				},
-				mounted: function() {
-					axios.get('/admin/userQuantities?key=' + '')
-							.then(response => {
-								app.total = response.data
-								app.group = Math.ceil(app.total / app.size)
-							})
-							.catch(function(error) {
-								console.log(error);
-							});
-
-					axios.get('/admin/allUser?key=' + '' + '&page=' + 1 )
-						.then(response => {
-							let users = response.data
-							app.currentPage = 1
-							this.users = users
-							console.log(this.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-				},
-				methods: {
-					toPage: function (pageNum) {
-						console.log(app.query)
-						app.currentPage = pageNum
-						axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-								.then(response => {
-									let users = response.data
-									app.users = users
-									console.log(app.users)
-								})
-								.catch(function(error) {
-									console.log(error);
-								});
-					},
-					toUpdate: function(index) {
-						this.userId = this.users[index].userId
-						this.username = this.users[index].username
-						this.birthday = this.users[index].birthday
-						this.hobby = this.users[index].hobby
-						this.points = this.users[index].points
-						this.balance = this.users[index].balance
-						this.index = index;
-						$('.ui.update.modal')
-								.modal({
-									closable  : false,
-									onDeny    : function(){
-										return true;
-									},
-									onApprove : function() {
-										app.isPassed = true
-										//判断用户名合法性
-										if (app.username.length > 10){
-											app.isPassed = false
-											app.usernameMessage = "用户名限制10个字符以内"
-										} else if (app.username.length === 0) {
-											app.isPassed = false
-											app.usernameMessage = "用户名不可为空"
-										} else {
-											app.usernameMessage = ""
-										}
+                }
+            })
 
 
-										//判断生日合法性
-										let date;
-										if (app.birthday !== "") {
-											date = app.birthday.split("-")
-											var today = new Date();
+            // 基于准备好的dom，初始化echarts实例
+            var barChart = echarts.init(document.getElementById('barChart'));
 
-											var month = today.getMonth() + 1;
-											console.log(month)
-											//年份比较，大于则不合法
-											if (today.getFullYear() < parseInt(date[0])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-												//月份比较，大于也不
-											} else if (today.getFullYear() === parseInt(date[0])
-													&& month < parseInt(date[1])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-											} else if (today.getFullYear() === parseInt(date[0])
-													&& month === parseInt(date[1]) &&
-													today.getDate() <= parseInt(date[2])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-											} else {
-												app.birthdayFlag = false
-											}
-										} else {
-											app.birthdayFlag = false
-										}
-										return app.isPassed
-									}
-								})
-								.modal('show');
-					},
-					toDelete: function(index) {
-						this.userId = this.users[index].userId
-						this.index = index
-						$('.ui.delete.modal').modal('show');
-					},
-					add: function() {
-						this.userId = ""
-						this.username = ""
-						this.birthday = ""
-						this.hobby = ""
-						this.points = ""
-						this.balance = ""
-						this.phone = ""
-						$('.ui.add.modal')
-								.modal({
-									closable  : false,
-									onDeny    : function(){
-										return true;
-									},
-									onApprove : function() {
-										app.isPassed = true
-										//判断用户名合法性
-										if (app.username.length > 10){
-											app.isPassed = false
-											app.usernameMessage = "用户名限制10个字符以内"
-										} else if (app.username.length === 0) {
-											app.isPassed = false
-											app.usernameMessage = "用户名不可为空"
-										} else {
-											app.usernameMessage = ""
-										}
-										//判断手机号合法性
-										const regex = /^1[3456789]\d{9}$/
-										if (!regex.test(app.phone)) {
-											app.phoneFlag = true
-											app.isPassed = false
-										} else {
-											app.phoneFlag = false
-										}
+            // 指定图表的配置项和数据
+            console.log(app.turnOver)
+            var option = {
+                title: {
+                    text: '莞丽美发 统计柱状图'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data:['客流量', '营业额']
+                },
+                yAxis: {},
+                xAxis: {
+                    data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子", "羽绒"]
+                },
+                series: [
+                    {
+                        name: '客流量',
+                        type: 'bar',
+                        data: app.passengerFlows
+                    },
+                    {
+                        name: '营业额',
+                        type: 'bar',
+                        data: app.turnOvers
+                    }
+                ]
+            };
+
+            // 使用刚指定的配置项和数据显示图表。
+            barChart.setOption(option);
 
 
-										//判断生日合法性
-										let date;
-										if (app.birthday !== "") {
-											date = app.birthday.split("-")
-											var today = new Date();
+            // 基于准备好的dom，初始化echarts实例
+            var lineChart = echarts.init(document.getElementById('lineChart'));
 
-											var month = today.getMonth() + 1;
-											console.log(month)
-											//年份比较，大于则不合法
-											if (today.getFullYear() < parseInt(date[0])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-												//月份比较，大于也不
-											} else if (today.getFullYear() === parseInt(date[0])
-													&& month < parseInt(date[1])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-											} else if (today.getFullYear() === parseInt(date[0])
-													&& month === parseInt(date[1]) &&
-													today.getDate() <= parseInt(date[2])) {
-												app.birthdayFlag = true
-												app.isPassed = false
-											} else {
-												app.birthdayFlag = false
-											}
-										} else {
-											app.birthdayFlag = false
-										}
-										return app.isPassed
-									}
-								})
-								.modal('show');
+            // 指定图表的配置项和数据
+            console.log(app.turnOver)
+            var option = {
+                title: {
+                    text: '莞丽美发 统计折线图'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data:['客流量', '营业额']
+                },
+                yAxis: {},
+                xAxis: {
+                    data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子", "羽绒"]
+                },
+                series: [
+                    {
+                        name: '客流量',
+                        type: 'line',
+                        data: app.passengerFlows
+                    },
+                    {
+                        name: '营业额',
+                        type: 'line',
+                        data: app.turnOvers
+                    }
+                ]
+            };
 
-						// $('.ui.add.modal').modal('show');
-					}
-				}
-			})
-
-			$(document).on('click', '#deleteUser', function() {
-				axios.get('/admin/deleteUser?userId=' + app.userId)
-					.then(response => {
-						let msg = response.data
-						if (msg.includes("成功")) {
-							app.users.splice(app.index, 1)
-							app.total = app.total - 1
-							app.group = Math.ceil(app.total / app.size)
-						}
-						alert(msg)
-					})
-					.catch(error => console.log(error))
-			})
-
-			// 根据Id的点击事件，
-			$(document).on('click', '#updateUser', function() {
-				// post请求
-				let user = new FormData()
-				user.append("userId", app.userId)
-				user.append("username", app.username)
-				user.append("birthday", app.birthday)
-				user.append("hobby", app.hobby)
-				user.append("points", app.points)
-				user.append("balance", app.balance)
-				if (app.isPassed) {
-					axios.post('/admin/updateUser/', user, {
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
-						}
-					})
-							.then(response => {
-								if (response.data !== -1){
-									app.users[app.index].userId = app.userId
-									app.users[app.index].username = app.username
-									app.users[app.index].birthday = app.birthday
-									app.users[app.index].hobby = app.hobby
-									app.users[app.index].points = app.points
-									app.users[app.index].balance = app.balance
-									alert("更新成功")
-								}
-								else {
-									alert("更新失败")
-								}
-							})
-							.catch(error => {
-								alert("更新失败")
-								console.log(error)
-							})
-				}
-			})
-
-			// 根据Id的点击事件，
-			$(document).on('click', '#addUser', function() {
-				// post请求
-				let user = new FormData()
-				user.append("username", app.username)
-				user.append("birthday", app.birthday)
-				user.append("hobby", app.hobby)
-				user.append("phone", app.phone)
-				// if (app.hobby == "") {
-				// 	alert("不可留空")
-				//
-				// }
-				if (app.isPassed) {
-					axios.post('/admin/addUser/', user, {
-						headers: {
-							'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
-						}
-					})
-							.then(response => {
-								console.log(response.data)
-								let result = false;
-								if (response.data !== -1){
-
-									// user.append("userId", app.userId)
-									// user.append("username", app.username)
-									// user.append("birthday", app.birthday)
-									// user.append("balance", "0")
-									// user.append("points", "0")
-									// user.append("hobby", app.hobby)
-									// user.append("phone", app.phone)
-									// app.users.splice((app.users.length + 1),1,user);
-
-									if (app.query !== "") {
-										if (app.username.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1) {
-											app.total = app.total + 1
-											app.group = Math.ceil(app.total / app.size)
-											result = true
-										}
-									} else {
-										app.total = app.total + 1
-										app.group = Math.ceil(app.total / app.size)
-										result = true
-									}
-									if (result) {
-										app.users.push(user)
-										app.users[app.users.length - 1].userId = response.data
-										app.users[app.users.length - 1].username = app.username
-										app.users[app.users.length - 1].birthday = app.birthday
-										app.users[app.users.length - 1].hobby = app.hobby
-										app.users[app.users.length - 1].points = 0
-										app.users[app.users.length - 1].balance = 0
-										app.users[app.users.length - 1].phone = app.phone
-									}
-									alert("添加成功")
-								}
-								else {
-									alert("添加失败或手机号已被注册")
-								}
-							})
-							.catch(error => {
-								alert("添加失败")
-								console.log(error)
-							})
-				}
-			})
-
-			$(document).on('click', "#search", function () {
-				console.log(app.query)
-				axios.get('/admin/userQuantities?key=' + app.query)
-						.then(response => {
-							app.total = response.data
-							app.group = Math.ceil(app.total / app.size)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-				axios.get('/admin/allUser?key=' + app.query + '&page=' + 1)
-						.then(response => {
-							let users = response.data
-							app.users = users
-							app.currentPage = 1
-							console.log(app.users)
-						})
-						.catch(function(error) {
-							console.log(error);
-						});
-			})
-			//
-			// $(document).on('click', "#prePage", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage - 1
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#prePageTwo", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage - 2
-			// 	axios.get('/admin/allUser?key=' + app.query + "&page=" + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#prePageOne", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage - 1
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#nextPageOne", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage +　1
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#nextPageTwo", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage +　2
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#nextPage", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage +　1
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#pageOne", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage -　4
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#pageTwo", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage -　3
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#lastPageTwo", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage +　3
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-			//
-			// $(document).on('click', "#lastPageOne", function () {
-			// 	console.log(app.query)
-			// 	app.currentPage = app.currentPage +　4
-			// 	axios.get('/admin/allUser?key=' + app.query + '&page=' + app.currentPage)
-			// 			.then(response => {
-			// 				let users = response.data
-			// 				app.users = users
-			// 				console.log(app.users)
-			// 			})
-			// 			.catch(function(error) {
-			// 				console.log(error);
-			// 			});
-			// })
-		</script>
-	</body>
+            // 使用刚指定的配置项和数据显示图表。
+            lineChart.setOption(option);
+        </script>
+    </body>
 </html>

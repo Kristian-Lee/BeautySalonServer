@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>门店管理</title>
+      <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+      <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+      <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+      <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+  </head>
+  <body>
+      <div id="app">
+          <div th:replace="head :: head"></div>
+          <br><br><br><br>
+          <div class="ui container" style="width: 85%;" th:align="right">
+              <div class="ui search">
+                  <div class="ui positive icon input">
+                      <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索门店" v-model="query">
+                      <i class="search link icon" id="search"></i>
+                  </div>
+                  <div class="results"></div>
+              </div>
+          </div>
+          <br><br>
+          <div class="ui container" style="width: 85%;">
+              <div class="ui fluid raised segment">
+                  <table class="ui celled table">
+                      <thead>
+                      <tr>
+                      <th>序号</th>
+                      <th>id</th>
+                      <th>门店名</th>
+                      <th>门店地址</th>
+                      <th>开店时间</th>
+                      <th>闭店时间</th>
+                      <th>
+                          操作
+                          <div class="ui green right ribbon large label">
+                              <a @click="add">新增门店</a>
+                          </div>
+                      </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr v-for="(barbershop,index) in barbershops" :key="'df' + index">
+                          <td>{{index}}</td>
+                          <td>{{barbershop.barbershopId}}</td>
+                          <td>{{barbershop.barbershopName}}</td>
+                          <td>{{barbershop.address}}</td>
+                          <td>{{barbershop.open}}</td>
+                          <td>{{barbershop.close}}</td>
+                          <td>
+                              <button class="ui green button" @click="toUpdate(index)">更新</button>
+                              <button class="ui red button" @click="toDelete(index)">删除</button>
+                          </td>
+                      </tr>
+                      </tbody>
+                      <tfoot>
+                      <tr>
+                          <th colspan="7">
+                              <div class="ui right floated pagination menu">
+                                  <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
+                                      <i class="left chevron icon"></i>
+                                  </a>
+                                  <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+                                  <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+                                  <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+                                  <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
+                                  <a class="item active">{{currentPage}}</a>
+                                  <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+                                  <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+                                  <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+                                  <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+                                  <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
+                                      <i class="right chevron icon"></i>
+                                  </a>
+                              </div>
+                          </th>
+                      </tr>
+                      </tfoot>
+                  </table>
+                  <div class="ui container" style="width: 100%;" th:align="right">
+                      <label>
+                          共计 {{group}} 页， {{total}} 条数据
+                      </label>
+                  </div>
+              </div>
+          </div>
+          <div th:replace="modal/barbershopModal :: updateBarbershopModal"></div>
+          <div th:replace="modal/barbershopModal :: addBarbershopModal"></div>
+          <div th:replace="modal/barbershopModal :: deleteBarbershopModal"></div>
+      </div>
+
+      <script type="text/javascript">
+          let app = new Vue({
+              el: '#app',
+              data: {
+                  barbershopId: -1,
+                  barbershops: [],
+                  barbershopName: "",
+                  address: "",
+                  open: "",
+                  close: "",
+                  index: 0,
+                  isPassed: "",
+                  barbershopNameMsg: "",
+                  addressMsg: "",
+                  timeMsg: "",
+                  query: "",
+                  total: 0,
+                  group: 0,
+                  size: 5,
+                  currentPage: 1,
+              },
+              mounted: function() {
+                  axios.get('/admin/barbershopQuantities?key=' + '')
+                      .then(response => {
+                          app.total = response.data
+                          app.group = Math.ceil(app.total / app.size)
+                      })
+                      .catch(function(error) {
+                          console.log(error);
+                      });
+                  axios.get('/admin/allBarbershop?key=' + '' + '&page=' + 1 )
+                      .then(response => {
+                          let barbershops = response.data
+                          app.currentPage = 1
+                          this.barbershops = barbershops
+                          console.log(this.barbershops)
+                      })
+                      .catch(function(error) {
+                          console.log(error);
+                      });
+                  },
+              methods: {
+                  toPage: function (pageNum) {
+                    console.log(app.query)
+                    app.currentPage = pageNum
+                    axios.get('/admin/allBarbershop?key=' + app.query + '&page=' + app.currentPage)
+                            .then(response => {
+                                app.barbershops = response.data
+                            })
+                            .catch(function(error) {
+                              console.log(error);
+                            });
+                  },
+
+                  toDelete: function (index) {
+                    this.barbershopId = this.barbershops[index].barbershopId
+                    this.index = index
+                    $('.ui.delete.modal').modal('show');
+                  },
+
+                  toUpdate: function(index) {
+                      this.barbershopId = this.barbershops[index].barbershopId
+                      this.barbershopName = this.barbershops[index].barbershopName
+                      this.address = this.barbershops[index].address
+                      this.open = this.barbershops[index].open
+                      this.close = this.barbershops[index].close
+                      this.index = index;
+                      $('.ui.update.modal')
+                          .modal({
+                              closable  : false,
+                              onDeny    : function(){
+                                  app.barbershopNameMsg = ""
+                                  app.addressMsg = ""
+                                  app.timeMsg = ""
+                                  return true;
+                              },
+                              onApprove : function() {
+                                  app.isPassed = true
+
+                                  //判断用户名合法性
+                                  if (app.barbershopName.length > 10) {
+                                      app.isPassed = false
+                                      app.barbershopNameMsg = "门店名限制10个字符以内"
+                                  } else if (app.barbershopName.length === 0) {
+                                      app.isPassed = false
+                                      app.barbershopNameMsg = "门店名不可为空"
+                                  }
+
+                                  if (app.address.length === 0) {
+                                      app.isPassed = false
+                                      app.addressMsg = "地址不可为空"
+                                  }
+
+                                  let openTime= app.open.split(":")
+                                  let closeTime = app.close.split(":")
+                                  if (openTime[0] > closeTime[0]) {
+                                      app.timeMsg = "开店时间不应迟于闭店时间"
+                                      app.isPassed = false
+                                  } else if (openTime[0] === closeTime[0] && openTime[1] >= closeTime[1]) {
+                                      app.timeMsg = "开店时间不应迟于闭店时间"
+                                      app.isPassed = false
+                                  }
+                                  return app.isPassed
+                              }
+                          }).modal('show');
+                  },
+
+                  add: function () {
+                      this.barbershopName = ""
+                      this.address = ""
+                      this.open = ""
+                      this.close = ""
+                      $('.ui.add.modal')
+                          .modal({
+                              closable  : false,
+                              onDeny    : function(){
+                                  app.barbershopNameMsg = ""
+                                  app.addressMsg = ""
+                                  app.timeMsg = ""
+                                  return true;
+                              },
+                              onApprove : function() {
+                                  app.isPassed = true
+
+                                  //判断用户名合法性
+                                  if (app.barbershopName.length > 10) {
+                                      app.isPassed = false
+                                      app.barbershopNameMsg = "门店名限制10个字符以内"
+                                  } else if (app.barbershopName.length === 0) {
+                                      app.isPassed = false
+                                      app.barbershopNameMsg = "门店名不可为空"
+                                  }
+
+                                  if (app.address.length === 0) {
+                                      app.isPassed = false
+                                      app.addressMsg = "地址不可为空"
+                                  }
+
+                                  let openTime= app.open.split(":")
+                                  let closeTime = app.close.split(":")
+                                  if (openTime[0] > closeTime[0]) {
+                                      app.timeMsg = "开店时间不应迟于闭店时间"
+                                      app.isPassed = false
+                                  } else if (openTime[0] === closeTime[0] && openTime[1] >= closeTime[1]) {
+                                      app.timeMsg = "开店时间不应迟于闭店时间"
+                                      app.isPassed = false
+                                  }
+                                  return app.isPassed
+                              }
+                          }).modal('show');
+                  }
+              }
+          })
+
+          $(document).on('click', '#deleteBarbershop', function() {
+              axios.get('/admin/deleteBarbershop?barbershopId=' + app.barbershopId)
+                  .then(response => {
+                      if (response.data !== -1) {
+                        app.barbershops.splice(app.index, 1)
+                        app.total = app.total - 1
+                        app.group = Math.ceil(app.total / app.size)
+                          alert("删除成功")
+                      } else {
+                          alert("删除失败，或因该门店还存在已绑定的发型师")
+                      }
+                  })
+                  .catch(error => console.log(error))
+          })
+
+          $(document).on('click', '#addBarbershop', function() {
+              let barbershop = new FormData()
+              barbershop.append("barbershopName", app.barbershopName)
+              barbershop.append("address", app.address)
+              barbershop.append("open", app.open)
+              barbershop.append("close", app.close)
+
+              if (app.isPassed) {
+                  axios.post('/admin/addBarbershop/', barbershop, {
+                      headers: {
+                          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                      }
+                  }).then(response => {
+                        let result = false;
+                        if (response.data !== -1){
+                            if (app.query !== "") {
+                                if (app.barbershopName.indexOf(app.query) !== -1 || app.address.indexOf(app.query) !== -1) {
+                                    app.total = app.total + 1
+                                    app.group = Math.ceil(app.total / app.size)
+                                    result = true
+                                }
+                            } else {
+                                app.total = app.total + 1
+                                app.group = Math.ceil(app.total / app.size)
+                                result = true
+                            }
+                            if (result) {
+                                app.barbershops.push(barbershop)
+                                app.barbershops[app.barbershops.length - 1].barbershopId = response.data
+                                app.barbershops[app.barbershops.length - 1].barbershopName = app.barbershopName
+                                app.barbershops[app.barbershops.length - 1].address = app.address
+                                app.barbershops[app.barbershops.length - 1].open = app.open
+                                app.barbershops[app.barbershops.length - 1].close = app.close
+                            }
+                            alert("添加成功")
+                        } else {
+                            alert("添加失败")
+                        }
+                  }).catch(error => {
+                      alert("发生错误")
+                      console.log(error)
+                  })
+              }
+          })
+
+          $(document).on('click', '#updateBarbershop', function() {
+              let barbershop = new FormData()
+              barbershop.append("barbershopName", app.barbershopName)
+              barbershop.append("address", app.address)
+              barbershop.append("open", app.open)
+              barbershop.append("close", app.close)
+              if (app.isPassed) {
+                  app.barbershopNameMsg = ""
+                  app.addressMsg = ""
+                  app.timeMsg = ""
+                  axios.post('/admin/updateBarbershop/', barbershop, {
+                      headers: {
+                          'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                      }
+                  }).then(response => {
+                      if (response.data !== -1){
+                          app.barbershops[app.index].barbershopId = app.barbershopId
+                          app.barbershops[app.index].barbershopName = app.barbershopName
+                          app.barbershops[app.index].address = app.address
+                          app.barbershops[app.index].open = app.open
+                          app.barbershops[app.index].close = app.close
+                      } else {
+                          alert("更新失败")
+                      }
+                  }).catch(error => {
+                      alert("更新失败")
+                      console.log(error)
+                  })
+              }
+          })
+
+          $(document).on('click', "#search", function () {
+              axios.get('/admin/barbershopQuantities?key=' + app.query)
+                  .then(response => {
+                      app.total = response.data
+                      app.group = Math.ceil(app.total / app.size)
+                  })
+                  .catch(function(error) {
+                      console.log(error);
+                  });
+              axios.get('/admin/allBarbershop?key=' + app.query + '&page=' + 1)
+                  .then(response => {
+                      app.barbershops = response.data
+                      app.currentPage = 1
+                  })
+                  .catch(function(error) {
+                      console.log(error);
+                  });
+          })
+      </script>
+  </body>
+</html>

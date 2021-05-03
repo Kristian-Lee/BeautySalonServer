@@ -263,8 +263,6 @@ public class StylistService {
         return new ResponseBody(ResponseCode.REQUEST_RESERVATION_COMMENT_DATA_FAILED, "");
     }
 
-
-
     public List<StylistVo> getAllStylist(String key, Integer pageNum) {
         int pageSize = 5;
         List<Stylist> stylistList = getStylistQuantities(key);

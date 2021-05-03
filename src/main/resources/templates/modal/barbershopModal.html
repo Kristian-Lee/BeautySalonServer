@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <div class="ui update modal" th:fragment="updateBarbershopModal">
+            <i class="close icon"></i>
+            <div class="header">
+                更新门店信息
+            </div>
+            <div class="content">
+                <div class="ui form">
+                    <div class="field">
+
+                        <label>门店名</label>
+                        <div class="field">
+                            <input type="text" name="barbershopName" placeholder="限10字符以内" v-model="barbershopName">
+                            <div class="ui pointing red basic label" v-if="barbershopNameMsg != ''">
+                                {{barbershopNameMsg}}
+                            </div>
+                        </div>
+
+                        <label>地址</label>
+                        <div class="field">
+                            <input type="text" name="address" placeholder="必填" v-model="address">
+                            <div class="ui pointing red basic label" v-if="addressMsg != ''">
+                                {{addressMsg}}
+                            </div>
+                        </div>
+
+                        <label>开店时间</label>
+                        <div class="field">
+                            <input type="time" name="open" placeholder="必填" v-model="open">
+                        </div>
+
+                        <label>闭店时间</label>
+                        <div class="field">
+                            <input type="time" name="close" placeholder="必填" v-model="close">
+                        </div>
+                        <div class="ui pointing red basic label" v-if="timeMsg != ''">
+                            {{timeMsg}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <div class="ui right labeled icon positive button" id="updateBarbershop">
+                    提交
+                    <i class="checkmark icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="ui add modal" th:fragment="addBarbershopModal">
+            <i class="close icon"></i>
+            <div class="header">
+                新增门店
+            </div>
+            <div class="content">
+                <div class="ui form">
+                    <div class="field">
+
+                        <label>门店名</label>
+                        <div class="field">
+                            <input type="text" name="barbershopName" placeholder="限10字符以内" v-model="barbershopName">
+                            <div class="ui pointing red basic label" v-if="barbershopNameMsg != ''">
+                                {{barbershopNameMsg}}
+                            </div>
+                        </div>
+
+                        <label>地址</label>
+                        <div class="field">
+                            <input type="text" name="address" placeholder="必填" v-model="address">
+                            <div class="ui pointing red basic label" v-if="addressMsg != ''">
+                                {{addressMsg}}
+                            </div>
+                        </div>
+
+                        <label>开店时间</label>
+                        <div class="field">
+                            <input type="time" name="open" placeholder="必填" v-model="open">
+                        </div>
+
+                        <label>闭店时间</label>
+                        <div class="field">
+                            <input type="time" name="close" placeholder="必填" v-model="close">
+                        </div>
+                        <div class="ui pointing red basic label" v-if="timeMsg != ''">
+                            {{timeMsg}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="actions">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <div class="ui right labeled icon positive button" id="addBarbershop">
+                    提交
+                    <i class="checkmark icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="ui delete modal" style="width: 40%;" th:fragment="deleteBarbershopModal">
+            <i class="close icon"></i>
+            <div class="header">
+                确认删除该门店所有信息？
+            </div>
+            <div class="actions">
+                <input type="text" name="barbershopId" hidden="hidden" :value="barbershopId">
+                <div class="ui black deny button">
+                    取消
+                </div>
+                <div class="ui positive right labeled icon button" id="deleteBarbershop">
+                    提交
+                    <i class="checkmark icon"></i>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

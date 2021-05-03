@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>优惠券管理</title>
+    <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+    <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+    <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+</head>
+<body>
+<div id="app">
+    <div th:replace="head :: head"></div>
+    <br><br><br><br>
+<!--    <div class="ui container" style="width: 85%;" th:align="right">-->
+<!--        <div class="ui search">-->
+<!--            <div class="ui positive icon input">-->
+<!--                <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索优惠券" v-model="query">-->
+<!--                <i class="search link icon" id="search"></i>-->
+<!--            </div>-->
+<!--            <div class="results"></div>-->
+<!--        </div>-->
+<!--    </div>-->
+    <br><br><br><br>
+    <div class="ui container" style="width: 85%;">
+        <div class="ui fluid raised segment">
+            <table class="ui celled table">
+                <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>id</th>
+                    <th>类型</th>
+                    <th>面值/折扣</th>
+                    <th>满减门槛</th>
+                    <th>起始时间</th>
+                    <th>截止时间</th>
+                    <th>总数</th>
+                    <th>剩余数量</th>
+                    <th>
+                        操作
+                        <div class="ui green right ribbon large label">
+                            <a @click="add">新增优惠券</a>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(coupon,index) in coupons" :key="'df' + index">
+                    <td>{{index}}</td>
+                    <td>{{coupon.couponId}}</td>
+                    <td>{{coupon.type}}</td>
+                    <td>{{coupon.value}}</td>
+                    <td>{{coupon.upTo}}</td>
+                    <td>{{coupon.dateFrom}}</td>
+                    <td>{{coupon.dateTo}}</td>
+                    <td>{{coupon.totalNum}}</td>
+                    <td>{{coupon.num}}</td>
+                    <td>
+                        <button class="ui red button" @click="toDelete(index)">删除</button>
+                    </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th colspan="10">
+                        <div class="ui right floated pagination menu">
+                            <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
+                                <i class="left chevron icon"></i>
+                            </a>
+                            <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+                            <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+                            <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+                            <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
+                            <a class="item active">{{currentPage}}</a>
+                            <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+                            <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+                            <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+                            <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+                            <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
+                                <i class="right chevron icon"></i>
+                            </a>
+                        </div>
+                    </th>
+                </tr>
+                </tfoot>
+            </table>
+            <div class="ui container" style="width: 100%;" th:align="right">
+                <label>
+                    共计 {{group}} 页， {{total}} 条数据
+                </label>
+            </div>
+        </div>
+    </div>
+    <div th:replace="modal/couponModal :: addCouponModal"></div>
+    <div th:replace="modal/couponModal :: deleteCouponModal"></div>
+</div>
+
+<script type="text/javascript">
+    let app = new Vue({
+        el: '#app',
+        data: {
+            couponId: -1,
+            coupons: [],
+            type: "",
+            value: "",
+            upTo: "",
+            dateFrom: "",
+            dateTo: "",
+            totalNum: 0,
+            num: 0,
+            index: 0,
+
+            isPassed: "",
+            typeMsg: "",
+            valueMsg: "",
+            upToMsg: "",
+            dateFromMsg: "",
+            dateToMsg: "",
+            totalNumMsg: "",
+
+            query: "",
+            total: 0,
+            group: 0,
+            size: 5,
+            currentPage: 1,
+        },
+        mounted: function() {
+            axios.get('/admin/couponQuantities?key=' + '')
+                .then(response => {
+                    app.total = response.data
+                    app.group = Math.ceil(app.total / app.size)
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+            axios.get('/admin/allCoupon?key=' + '' + '&page=' + 1 )
+                .then(response => {
+                    app.coupons = response.data
+                    app.currentPage = 1
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        },
+        methods: {
+            toPage: function (pageNum) {
+                console.log(app.query)
+                app.currentPage = pageNum
+                axios.get('/admin/allCoupon?key=' + app.query + '&page=' + app.currentPage)
+                    .then(response => {
+                        app.coupons = response.data
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            },
+
+            toDelete: function (index) {
+                this.couponId = this.coupons[index].couponId
+                this.index = index
+                $('.ui.delete.modal').modal('show');
+            },
+
+            add: function () {
+                this.typeMsg = ""
+                this.valueMsg = ""
+                this.upToMsg = ""
+                this.dateFromMsg = ""
+                this.dateToMsg = ""
+                this.totalNumMsg = ""
+                $('.ui.selection.dropdown').dropdown();
+                $('.ui.add.modal')
+                    .modal({
+                        closable  : false,
+                        onDeny    : function() {
+                            return true;
+                        },
+                        onApprove : function() {
+                            app.isPassed = true
+                            let type = document.getElementById("type").value
+                            if (type !== "") {
+                                app.type = type
+                                app.typeMsg = ""
+                            } else {
+                                app.typeMsg = "须选择优惠券类型"
+                                app.isPassed = false
+                            }
+
+                            if (app.value === "") {
+                                app.valueMsg = "请填写面值"
+                                app.isPassed = false
+                            } else if (app.value < 1) {
+                                app.valueMsg = "面值/折扣应大于等于1"
+                                app.isPassed = false
+                            } else if (type === "折扣券" && app.value >= 10) {
+                                app.valueMsg = "折扣范围应在0~10以内（不包括0和10）"
+                                app.isPassed = false
+                            } else {
+                                app.value = Math.ceil(parseFloat(app.value)) + ""
+                                app.valueMsg = ""
+                            }
+
+                            if (app.upTo === "") {
+                                app.upToMsg = "请填写满减门槛"
+                                app.isPassed = false
+                            } else if (app.upTo < 0) {
+                                app.upToMsg = "不可为负数"
+                                app.isPassed = false
+                            } else if (app.upTo !== 0 && app.type === "满减券" && parseInt(app.upTo) < parseInt(app.value)) {
+                                app.upToMsg = "非无门槛的满减券，满减门槛不应小于其面值"
+                                app.isPassed = false
+                            } else {
+                                app.upTo = Math.ceil(parseFloat(app.upTo)) + ""
+                                app.upToMsg = ""
+                            }
+
+                            //判断有效期限合法性
+                            let dateFrom;
+                            if (app.dateFrom !== "") {
+                                app.dateFromMsg = ""
+                                dateFrom = app.dateFrom.split("-")
+                                const today = new Date();
+                                const month = today.getMonth() + 1;
+                                console.log(month)
+                                //年份比较，大于则不合法
+                                if (today.getFullYear() > parseInt(dateFrom[0])) {
+                                    app.dateFromMsg = "有效起始日期须大于当日"
+                                    app.isPassed = false
+                                    //月份比较，大于也不合法
+                                } else if (today.getFullYear() === parseInt(dateFrom[0])
+                                    && month > parseInt(dateFrom[1])) {
+                                    app.dateFromMsg = "有效起始日期须大于当日"
+                                    app.isPassed = false
+                                } else if (today.getFullYear() === parseInt(dateFrom[0])
+                                    && month === parseInt(dateFrom[1]) &&
+                                    today.getDate() >= parseInt(dateFrom[2])) {
+                                    app.dateFromMsg = "有效起始日期须大于当日"
+                                    app.isPassed = false
+                                }
+                            } else {
+                                app.dateFromMsg = "起始日期不可为空"
+                                app.isPassed = false
+                            }
+                            let dateTo;
+                            if (app.dateTo !== "") {
+                                app.dateToMsg = ""
+                                if (app.dateFrom !== "") {
+                                    dateTo = app.dateTo.split("-")
+
+                                    //年份比较，大于则不合法
+                                    if (parseInt(dateFrom[0]) > parseInt(dateTo[0])) {
+                                        app.dateToMsg = "截止日期不应小于起始日期"
+                                        app.isPassed = false
+                                        //月份比较，大于也不合法
+                                    } else if (parseInt(dateFrom[0]) === parseInt(dateTo[0])
+                                        && parseInt(dateFrom[1]) > parseInt(dateTo[1])) {
+                                        app.dateToMsg = "截止日期不应小于起始日期"
+                                        app.isPassed = false
+                                    } else if (parseInt(dateFrom[0]) === parseInt(dateTo[0])
+                                        && parseInt(dateFrom[1]) === parseInt(dateTo[1]) &&
+                                        parseInt(dateFrom[2]) > parseInt(dateTo[2])) {
+                                        app.dateToMsg = "截止日期不应小于起始日期"
+                                        app.isPassed = false
+                                    }
+                                }
+                            } else {
+                                app.dateToMsg = "截止日期不可为空"
+                                app.isPassed = false
+                            }
+                            if (app.totalNum === "") {
+                                app.totalNumMsg = "数量不可为空"
+                                app.isPassed = false
+                            } else if (app.totalNum < 0) {
+                                app.totalNumMsg = "不可为负数"
+                                app.isPassed = false
+                            } else {
+                                app.totalNum = Math.ceil(parseFloat(app.totalNum)) + ""
+                                app.totalNumMsg = ""
+                            }
+                            return app.isPassed
+                        }
+                    }).modal('show');
+            }
+        }
+    })
+
+    $(document).on('click', '#deleteCoupon', function() {
+        axios.get('/admin/deleteCoupon?couponId=' + app.couponId)
+            .then(response => {
+                if (response.data !== -1) {
+                    app.coupons.splice(app.index, 1)
+                    app.total = app.total - 1
+                    app.group = Math.ceil(app.total / app.size)
+                    alert("删除成功")
+                } else {
+                    alert("删除失败")
+                }
+            })
+            .catch(error => console.log(error))
+    })
+
+    $(document).on('click', '#addCoupon', function() {
+        let coupon = new FormData()
+        coupon.append("type", app.type)
+        coupon.append("value", app.value)
+        coupon.append("upTo", app.upTo)
+        coupon.append("dateFrom", app.dateFrom)
+        coupon.append("dateTo", app.dateTo)
+        coupon.append("totalNum", app.totalNum)
+
+        if (app.isPassed) {
+            axios.post('/admin/addCoupon/', coupon, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                }
+            }).then(response => {
+                let result = false;
+                if (response.data !== -1){
+                    app.total = app.total + 1
+                    app.group = Math.ceil(app.total / app.size)
+                    app.coupons.push(coupon)
+                    app.coupons[app.coupons.length - 1].couponId = response.data
+                    app.coupons[app.coupons.length - 1].type = app.type
+                    if (app.type === "满减券") {
+                        app.coupons[app.coupons.length - 1].value = "￥" + app.value
+                    } else {
+                        app.coupons[app.coupons.length - 1].value = app.value + "折"
+                    }
+                    if (app.upTo !== "0") {
+                        app.coupons[app.coupons.length - 1].upTo = "满" + app.upTo + "可用"
+                    } else {
+                        app.coupons[app.coupons.length - 1].upTo = "无门槛"
+                    }
+                    app.coupons[app.coupons.length - 1].dateFrom = app.dateFrom
+                    app.coupons[app.coupons.length - 1].dateTo = app.dateTo
+                    app.coupons[app.coupons.length - 1].totalNum = app.totalNum
+                    app.coupons[app.coupons.length - 1].num = app.totalNum
+
+                    alert("添加成功")
+                } else {
+                    alert("添加失败")
+                }
+            }).catch(error => {
+                alert("发生错误")
+                console.log(error)
+            })
+        }
+    })
+</script>
+</body>
+</html>

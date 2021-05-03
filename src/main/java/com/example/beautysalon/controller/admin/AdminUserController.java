@@ -25,13 +25,13 @@ public class AdminUserController {
     private UserService userService;
 
 
-    @GetMapping("/index")
+    @GetMapping("/user")
     public String toAdminUser(){
-        return "index";
+        return "user";
     }
 
     @CrossOrigin
-    @GetMapping("/user")
+    @GetMapping("/users")
     @ResponseBody
     public UserVo getUser(@RequestParam Integer userId){
         User user = userService.selectByPrimaryKey(userId);
