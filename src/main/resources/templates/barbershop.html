@@ -103,7 +103,7 @@
                   open: "",
                   close: "",
                   index: 0,
-                  isPassed: "",
+                  isPassed: true,
                   barbershopNameMsg: "",
                   addressMsg: "",
                   timeMsg: "",
@@ -159,6 +159,9 @@
                       this.open = this.barbershops[index].open
                       this.close = this.barbershops[index].close
                       this.index = index;
+                      this.barbershopNameMsg = ""
+                      this.addressMsg = ""
+                      this.timeMsg = ""
                       $('.ui.update.modal')
                           .modal({
                               closable  : false,
@@ -204,6 +207,9 @@
                       this.address = ""
                       this.open = ""
                       this.close = ""
+                      this.barbershopNameMsg = ""
+                      this.addressMsg = ""
+                      this.timeMsg = ""
                       $('.ui.add.modal')
                           .modal({
                               closable  : false,

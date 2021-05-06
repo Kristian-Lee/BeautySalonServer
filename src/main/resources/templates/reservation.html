@@ -46,9 +46,6 @@
                         <th>支付时间</th>
                         <th>
                             操作
-    <!--                        <div class="ui green right ribbon large label">-->
-    <!--                            <a @click="add">添加发型师</a>-->
-    <!--                        </div>-->
                         </th>
                     </tr>
                     </thead>
@@ -70,10 +67,8 @@
                         <td>{{reserve.realPay}}</td>
                         <td>{{reserve.payDate}}</td>
                         <td>
-
                             <button class="ui blue button" @click="toCancel(index)" v-if="reserve.enableCancel === 'true'">取消</button>
                             <button class="ui red button" @click="toDelete(index)">删除</button>
-    <!--                        <button class="ui blue button" @click="examine(index)" v-if="stylist.passed === '未通过'">审核</button>-->
                         </td>
                     </tr>
                     </tbody>

@@ -173,6 +173,10 @@
 						this.points = this.users[index].points
 						this.balance = this.users[index].balance
 						this.index = index;
+						this.usernameMessage = ""
+						this.phoneFlag = false
+						this.birthdayFlag = false
+						this.isPassed = true
 						$('.ui.update.modal')
 								.modal({
 									closable  : false,
@@ -239,6 +243,9 @@
 						this.points = ""
 						this.balance = ""
 						this.phone = ""
+						this.usernameMessage = ""
+						this.phoneFlag = false
+						this.birthdayFlag = false
 						$('.ui.add.modal')
 								.modal({
 									closable  : false,
