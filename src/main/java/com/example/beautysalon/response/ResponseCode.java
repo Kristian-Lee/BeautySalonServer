@@ -37,6 +37,7 @@ public class ResponseCode {
     public static final int UPDATE_STYLIST_SUCCESS = 2027;
     public static final int REQUEST_USER_COMMENT_DATA_SUCCESS = 2028;
     public static final int REQUEST_RESERVATION_COMMENT_DATA_SUCCESS = 2029;
+    public static final int REQUEST_INFORMATION_DATA_SUCCESS = 2030;
 
 
 
@@ -71,7 +72,7 @@ public class ResponseCode {
     public static final int UPDATE_STYLIST_FAILED= 3028;
     public static final int REQUEST_USER_COMMENT_DATA_FAILED = 3029;
     public static final int REQUEST_RESERVATION_COMMENT_DATA_FAILED = 3030;
-
+    public static final int REQUEST_INFORMATION_DATA_FAILED = 3031;
 
 
 

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<body>
+<div class="ui delete modal" style="width: 40%;" th:fragment="deleteInformationModal">
+  <i class="close icon"></i>
+  <div class="header">
+    确认删除该资讯？
+  </div>
+  <div class="actions">
+    <input type="text" name="id" hidden="hidden" :value="id">
+    <div class="ui black deny button">
+      取消
+    </div>
+    <div class="ui positive right labeled icon button" id="deleteInformation">
+      提交
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
+<div class="ui add modal" th:fragment="addInformationModal">
+  <i class="close icon"></i>
+  <div class="header">
+    添加资讯
+  </div>
+  <div class="content">
+    <div class="ui form">
+      <div class="field">
+
+        <label>标题</label>
+        <div class="field">
+          <input type="text" name="title" placeholder="必填" v-model="title">
+          <div class="ui pointing red basic label" v-if="titleMsg != ''">
+            {{titleMsg}}
+          </div>
+        </div>
+
+        <label>内容</label>
+        <div class="field">
+          <textarea name="content" placeholder="必填" cols="30" rows="10" v-model="content"></textarea>
+<!--          <input type="text" name="content" placeholder="必填" v-model="content">-->
+          <div class="ui pointing red basic label" v-if="contentMsg != ''">
+            {{contentMsg}}
+          </div>
+        </div>
+
+        <label>带Html格式内容</label>
+        <div class="field">
+          <textarea name="webView" placeholder="必填" cols="30" rows="10" v-model="webView"></textarea>
+          <div class="ui pointing red basic label" v-if="webViewMsg != ''">
+            {{webViewMsg}}
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui black deny button">
+      取消
+    </div>
+    <div class="ui right labeled icon positive button" id="addInformation">
+      提交
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
+<div class="ui update modal" th:fragment="updateInformationModal">
+  <i class="close icon"></i>
+  <div class="header">
+    更新资讯
+  </div>
+  <div class="content">
+    <div class="ui form">
+      <div class="field">
+
+        <label>标题</label>
+        <div class="field">
+          <input type="text" name="title" placeholder="必填" v-model="title">
+          <div class="ui pointing red basic label" v-if="titleMsg != ''">
+            {{titleMsg}}
+          </div>
+        </div>
+
+        <label>内容</label>
+        <div class="field">
+          <textarea name="content" placeholder="必填" cols="30" rows="10" v-model="content"></textarea>
+<!--          <input type="text" name="content" placeholder="必填" v-model="content">-->
+          <div class="ui pointing red basic label" v-if="contentMsg != ''">
+            {{contentMsg}}
+          </div>
+        </div>
+
+        <label>带Html格式内容</label>
+        <div class="field">
+          <textarea name="webView" placeholder="必填" cols="30" rows="10" v-model="webView"></textarea>
+<!--          <input type="text" name="webview" placeholder="必填" v-model="webview">-->
+          <div class="ui pointing red basic label" v-if="webViewMsg != ''">
+            {{webViewMsg}}
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui black deny button">
+      取消
+    </div>
+    <div class="ui right labeled icon positive button" id="updateInformation">
+      提交
+      <i class="checkmark icon"></i>
+    </div>
+  </div>
+</div>
+
+<!--<div class="ui detail fullscreen modal" th:fragment="informationDetailModal">-->
+<!--  <i class="close icon"></i>-->
+<!--  <div class="header">-->
+<!--    资讯详情-->
+<!--  </div>-->
+<!--  <div class="content">-->
+<!--    <div class="ui container" style="width: 85%;">-->
+<!--      <div class="ui segment">-->
+<!--        <div id="showContent" style="height: 90%;"></div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<div class="ui detail fullscreen basic modal" th:fragment="informationDetailModal">
+  <i class="close icon" style="color: red"></i>
+  <div class="content" style="height: 1200px;">
+    <div class="ui container" style="height: 1200px; width: 80%;">
+      <div id="showContent"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

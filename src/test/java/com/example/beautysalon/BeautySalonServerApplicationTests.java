@@ -18,7 +18,10 @@ class BeautySalonServerApplicationTests {
 
     @Test
     void contextLoads() {
-
+        float s = 9.999f;
+        float k = 1.211f;
+        System.out.println(s/k);
+        System.out.println((int) (Math.ceil(s/k)));
     }
 
 }

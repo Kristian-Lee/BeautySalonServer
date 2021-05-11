@@ -1,10 +1,379 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>资讯管理</title>
+    <link rel="stylesheet" th:href="@{/semantic_ui/semantic.css}">
+    <script type="text/javascript" charset="UTF-8" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" charset="UTF-8" th:src="@{/js/vue.js}"></script>
+    <script type="text/javascript" th:src="@{/semantic_ui/semantic.min.js}"></script>
+    <style type="text/css">
+        .mCS_img_loaded{
+            height: 50%;
+            width: 50%;
+            margin-left: 1px;
+            margin-right: 1px;
+        }
+    </style>
 </head>
 <body>
+    <div id="app">
+        <div th:replace="head :: head"></div>
+        <br><br><br><br>
+        <div class="ui container" style="width: 85%;" th:align="right">
+            <div class="ui search">
+                <div class="ui positive icon input">
+                    <input class="prompt" name="query" style="width: 250px" type="text" placeholder="搜索资讯" v-model="query">
+                    <i class="search link icon" id="search"></i>
+                </div>
+                <div class="results"></div>
+            </div>
+        </div>
+        <br><br>
+        <div class="ui container" style="width: 85%;">
+            <div class="ui fluid raised segment">
+                <table class="ui celled table">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>id</th>
+                        <th>创建时间</th>
+                        <th>标题</th>
+                        <th>内容</th>
+                        <th>带Html格式的内容</th>
+                        <th>
+                            操作
+                            <div class="ui green right ribbon large label">
+                                <a @click="add">新增资讯</a>
+                            </div>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(information,index) in informationList" :key="'df' + index">
+                        <td>{{index}}</td>
+                        <td>{{information.id}}</td>
+                        <td>{{information.createDate}}</td>
+                        <td>{{information.title}}</td>
+                        <td>{{information.content}}</td>
+                        <td>
+                            {{information.webView}}
+    <!--                        <div v-html="information.webView">-->
+    <!--                        </div>-->
+                        </td>
+                        <td>
+                            <button class="ui green button" @click="toUpdate(index)">更新</button>
+                            <button class="ui blurring button" @click="detail(index)">预览</button>
+                            <button class="ui red button" @click="toDelete(index)">删除</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <th colspan="7">
+                            <div class="ui right floated pagination menu">
+                                <a class="icon item" v-if="currentPage > 1" @click="toPage(currentPage - 1)">
+                                    <i class="left chevron icon"></i>
+                                </a>
+                                <a class="item" v-if="group - currentPage == 0 && group >= 5" @click="toPage(currentPage - 4)">{{currentPage - 4}}</a>
+                                <a class="item" v-if="group - currentPage <= 1 && group >= 4 && currentPage != 3" @click="toPage(currentPage - 3)">{{currentPage - 3}}</a>
+                                <a class="item" v-if="currentPage - 2 > 0" @click="toPage(currentPage - 2)">{{currentPage - 2}}</a>
+                                <a class="item" v-if="currentPage - 1 > 0" @click="toPage(currentPage - 1)">{{currentPage - 1}}</a>
+                                <a class="item active">{{currentPage}}</a>
+                                <a class="item" v-if="currentPage + 1 <= group" @click="toPage(currentPage + 1)">{{currentPage + 1}}</a>
+                                <a class="item" v-if="currentPage + 2 <= group" @click="toPage(currentPage + 2)">{{currentPage + 2}}</a>
+                                <a class="item" v-if="currentPage <= 2 && group - currentPage > 2" @click="toPage(currentPage + 3)">{{currentPage + 3}}</a>
+                                <a class="item" v-if="currentPage == 1 && group >= 5" @click="toPage(currentPage + 4)">{{currentPage + 4}}</a>
+                                <a class="icon item" v-if="currentPage < group" @click="toPage(currentPage + 1)">
+                                    <i class="right chevron icon"></i>
+                                </a>
+                            </div>
+                        </th>
+                    </tr>
+                    </tfoot>
+                </table>
+                <div class="ui container" style="width: 100%;" th:align="right">
+                    <label>
+                        共计 {{group}} 页， {{total}} 条数据
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div th:replace="modal/informationModal :: addInformationModal"></div>
+        <div th:replace="modal/informationModal :: updateInformationModal"></div>
+        <div th:replace="modal/informationModal :: informationDetailModal"></div>
+        <div th:replace="modal/informationModal :: deleteInformationModal"></div>
+    </div>
 
+    <script type="text/javascript">
+        let app = new Vue({
+            el: '#app',
+            data: {
+                id: -1,
+                informationList: [],
+                title: "",
+                content: "",
+                webView: "",
+                createDate: "",
+                index: 0,
+
+                isPassed: true,
+                titleMsg: "",
+                contentMsg:"",
+                webViewMsg: "",
+
+                query: "",
+                total: 0,
+                group: 0,
+                size: 5,
+                currentPage: 1,
+            },
+            mounted: function() {
+                axios.get('/admin/informationQuantities?key=' + '')
+                    .then(response => {
+                        app.total = response.data
+                        app.group = Math.ceil(app.total / app.size)
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+                axios.get('/admin/allInformation?key=' + '' + '&page=' + 1 )
+                    .then(response => {
+                        app.informationList = response.data
+                        app.currentPage = 1
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+            },
+            methods: {
+                toPage: function (pageNum) {
+                    console.log(app.query)
+                    app.currentPage = pageNum
+                    axios.get('/admin/allInformation?key=' + app.query + '&page=' + app.currentPage)
+                        .then(response => {
+                            app.informationList = response.data
+                        })
+                        .catch(function(error) {
+                            console.log(error);
+                        });
+                },
+                toUpdate: function(index) {
+                    this.id = this.informationList[index].id
+                    this.title = this.informationList[index].title
+                    this.content = this.informationList[index].content
+                    this.webView = this.informationList[index].webView
+                    this.index = index
+                    this.titleMsg = ""
+                    this.contentMsg = ""
+                    this.webViewMsg = ""
+
+                    this.isPassed = true
+                    $('.ui.update.modal')
+                        .modal({
+                            closable  : false,
+                            onDeny    : function(){
+                                return true;
+                            },
+                            onApprove : function() {
+                                app.isPassed = true
+                                if (app.title.length === 0) {
+                                    app.isPassed = false
+                                    app.titleMsg = "不可为空"
+                                } else {
+                                    app.titleMsg = ""
+                                }
+
+                                if (app.content.length === 0) {
+                                    app.isPassed = false
+                                    app.contentMsg = "不可为空"
+                                } else {
+                                    app.contentMsg = ""
+                                }
+
+                                if (app.webView.length === 0) {
+                                    app.isPassed = false
+                                    app.webViewMsg = "不可为空"
+                                } else {
+                                    app.webViewMsg = ""
+                                }
+                                return app.isPassed
+                            }
+                        })
+                        .modal('show');
+                },
+                detail: function (index) {
+                    this.index = index
+                    document.getElementById('showContent').innerHTML = this.informationList[index].webView
+                    $('.ui.detail.fullscreen.basic.modal').modal('show');
+                },
+                toDelete: function (index) {
+                    this.id = this.informationList[index].id
+                    this.index = index
+                    $('.ui.delete.modal').modal('show');
+                },
+
+                add: function () {
+                    this.id = ""
+                    this.title = ""
+                    this.content = ""
+                    this.webView = ""
+                    this.index = -1
+                    this.createDate = ""
+                    this.titleMsg = ""
+                    this.contentMsg = ""
+                    this.webViewMsg = ""
+                    $('.ui.add.modal')
+                        .modal({
+                            closable  : false,
+                            onDeny    : function() {
+                                return true;
+                            },
+                            onApprove : function() {
+                                app.isPassed = true
+                                if (app.title.length === 0) {
+                                    app.isPassed = false
+                                    app.titleMsg = "不可为空"
+                                } else {
+                                    app.titleMsg = ""
+                                }
+
+                                if (app.content.length === 0) {
+                                    app.isPassed = false
+                                    app.contentMsg = "不可为空"
+                                } else {
+                                    app.contentMsg = ""
+                                }
+
+                                if (app.webView.length === 0) {
+                                    app.isPassed = false
+                                    app.webViewMsg = "不可为空"
+                                } else {
+                                    app.webViewMsg = ""
+                                }
+                                return app.isPassed
+                            }
+                        }).modal('show');
+                }
+            }
+        })
+
+        $(document).on('click', '#deleteInformation', function() {
+            axios.get('/admin/deleteInformation?id=' + app.id)
+                .then(response => {
+                    if (response.data !== -1) {
+                        app.informationList.splice(app.index, 1)
+                        app.total = app.total - 1
+                        app.group = Math.ceil(app.total / app.size)
+                        alert("删除成功")
+                    } else {
+                        alert("删除失败")
+                    }
+                })
+                .catch(error => console.log(error))
+        })
+
+        $(document).on('click', '#addInformation', function() {
+            let information = new FormData()
+            information.append("title", app.title)
+            information.append("content", app.content)
+            information.append("webView", app.webView)
+
+            if (app.isPassed) {
+                axios.post('/admin/addInformation/', information, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                    }
+                }).then(response => {
+                    let result = false;
+                    if (response.data !== -1){
+                        if (app.query !== "") {
+                            if (app.title.indexOf(app.query) !== -1 || app.content.indexOf(app.query) !== -1) {
+                                app.total = app.total + 1
+                                app.group = Math.ceil(app.total / app.size)
+                                result = true
+                            }
+                        } else {
+                            app.total = app.total + 1
+                            app.group = Math.ceil(app.total / app.size)
+                            result = true
+                        }
+                        if (result) {
+                            app.informationList.push(information)
+                            app.informationList[app.informationList.length - 1].id = response.data
+                            app.informationList[app.informationList.length - 1].title = app.title
+                            app.informationList[app.informationList.length - 1].content = app.content
+                            app.informationList[app.informationList.length - 1].webView = app.webView
+                            app.informationList[app.informationList.length - 1].content = app.content
+                            const date = new Date();
+                            app.createDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+                            app.informationList[app.informationList.length - 1].createDate = app.createDate
+                        }
+                        alert("添加成功")
+                    } else {
+                        alert("添加失败")
+                    }
+                }).catch(error => {
+                    alert("发生错误")
+                    console.log(error)
+                })
+            }
+        })
+
+        // 根据Id的点击事件，
+        $(document).on('click', '#updateInformation', function() {
+            // post请求
+            let information = new FormData()
+            information.append("id", app.id)
+            information.append("createDate", app.createDate)
+            information.append("title", app.title)
+            information.append("content", app.content)
+            information.append("webView", app.webView)
+            if (app.isPassed) {
+                axios.post('/admin/updateInformation/', information, {
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+                    }
+                })
+                    .then(response => {
+                        if (response.data !== -1){
+                            app.informationList[app.index].id = app.id
+                            app.informationList[app.index].title = app.title
+                            app.informationList[app.index].content = app.content
+                            app.informationList[app.index].webView = app.webView
+                            alert("更新成功")
+                        }
+                        else {
+                            alert("更新失败")
+                        }
+                    })
+                    .catch(error => {
+                        alert("更新失败")
+                        console.log(error)
+                    })
+            }
+        })
+
+        $(document).on('click', "#search", function () {
+            console.log(app.query)
+            axios.get('/admin/informationQuantities?key=' + app.query)
+                .then(response => {
+                    app.total = response.data
+                    app.group = Math.ceil(app.total / app.size)
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+            axios.get('/admin/allInformation?key=' + app.query + '&page=' + 1)
+                .then(response => {
+                    app.informationList = response.data
+                    app.currentPage = 1
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        })
+    </script>
 </body>
 </html>

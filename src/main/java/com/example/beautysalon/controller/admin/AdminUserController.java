@@ -69,7 +69,7 @@ public class AdminUserController {
     @CrossOrigin
     @PostMapping("/updateUser")
     @ResponseBody
-    public int getAllUser(UserVo userVo) throws ParseException {
+    public int updateUser(UserVo userVo) throws ParseException {
         return userService.updateUser(userVo);
     }
 

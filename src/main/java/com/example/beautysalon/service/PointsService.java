@@ -1,6 +1,7 @@
 package com.example.beautysalon.service;
 
 import com.example.beautysalon.mbg.mapper.PointsMapper;
+import com.example.beautysalon.mbg.mapper.ReserveMapper;
 import com.example.beautysalon.mbg.mapper.SignInMapper;
 import com.example.beautysalon.mbg.mapper.UserMapper;
 import com.example.beautysalon.mbg.model.*;
@@ -13,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 /**
  * @author Lee
@@ -28,6 +30,8 @@ public class PointsService {
     private SignInMapper signInMapper;
     @Resource
     private UserMapper userMapper;
+    @Resource
+    private ReserveMapper reserveMapper;
 
     public ResponseBody getSignInData(int userId) {
         SignIn signIn = getSignInByUserId(userId);
@@ -94,6 +98,28 @@ public class PointsService {
     }
 
     public ResponseBody getPointsData(int userId) {
+        //调正已完成的订单
+        ReserveExample reserveExample1 = new ReserveExample();
+        reserveExample1.createCriteria()
+                .andUserIdEqualTo(userId)
+                .andStatusEqualTo(1)
+                .andIsRewardedEqualTo(0)
+                .andServeDateLessThanOrEqualTo(new Date());
+        List<Reserve> reserveList1 = reserveMapper.selectByExample(reserveExample1);
+        reserveList1.forEach(reserve -> {
+            Random random = new Random();
+            int percent = random.nextInt(5) + 2;
+            int value = (int) Math.ceil(reserve.getValue() * percent / 10);
+            Points points = new Points();
+            points.setCreateDate(reserve.getServeDate());
+            points.setType(1);
+            points.setUserId(userId);
+            points.setValue(value);
+            pointsMapper.insert(points);
+            reserve.setIsRewarded(1);
+            reserveMapper.updateByPrimaryKeySelective(reserve);
+        });
+
         PointsExample pointsExample = new PointsExample();
         pointsExample.setOrderByClause("create_date desc");
         pointsExample.createCriteria()

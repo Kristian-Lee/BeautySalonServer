@@ -424,6 +424,29 @@ public class ReserveService {
             HashMap<String, Object> map = new HashMap<>();
             map.put("reserve", reserveList);
             map.put("stylist", stylistList);
+
+            //调正已完成的订单
+            ReserveExample reserveExample1 = new ReserveExample();
+            reserveExample1.createCriteria()
+                    .andUserIdEqualTo(user.getUserId())
+                    .andStatusEqualTo(1)
+                    .andIsRewardedEqualTo(0)
+                    .andServeDateLessThanOrEqualTo(new Date());
+            List<Reserve> reserveList1 = reserveMapper.selectByExample(reserveExample1);
+            reserveList1.forEach(reserve -> {
+                Random random = new Random();
+                int percent = random.nextInt(5) + 2;
+                int value = (int) Math.ceil(reserve.getValue() * percent / 10);
+                Points points = new Points();
+                points.setCreateDate(reserve.getServeDate());
+                points.setType(1);
+                points.setUserId(user.getUserId());
+                points.setValue(value);
+                pointsMapper.insert(points);
+                reserve.setIsRewarded(1);
+                reserveMapper.updateByPrimaryKeySelective(reserve);
+            });
+
             return new ResponseBody(ResponseCode.REQUEST_RESERVATION_DATA_SUCCESS, map);
         } else if (reserveList != null){
             List<Stylist> stylistList = new ArrayList<>();
