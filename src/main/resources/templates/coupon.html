@@ -310,7 +310,7 @@
         coupon.append("totalNum", app.totalNum)
 
         if (app.isPassed) {
-            axios.post('/admin/addCoupon/', coupon, {
+            axios.post('/admin/addCoupon', coupon, {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
             }

@@ -275,7 +275,7 @@
               barbershop.append("close", app.close)
 
               if (app.isPassed) {
-                  axios.post('/admin/addBarbershop/', barbershop, {
+                  axios.post('/admin/addBarbershop', barbershop, {
                       headers: {
                           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
                       }
@@ -322,7 +322,7 @@
                   app.barbershopNameMsg = ""
                   app.addressMsg = ""
                   app.timeMsg = ""
-                  axios.post('/admin/updateBarbershop/', barbershop, {
+                  axios.post('/admin/updateBarbershop', barbershop, {
                       headers: {
                           'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
                       }

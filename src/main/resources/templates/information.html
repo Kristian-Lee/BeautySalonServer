@@ -281,7 +281,7 @@
             information.append("webView", app.webView)
 
             if (app.isPassed) {
-                axios.post('/admin/addInformation/', information, {
+                axios.post('/admin/addInformation', information, {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
                     }
@@ -331,7 +331,7 @@
             information.append("content", app.content)
             information.append("webView", app.webView)
             if (app.isPassed) {
-                axios.post('/admin/updateInformation/', information, {
+                axios.post('/admin/updateInformation', information, {
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
                     }

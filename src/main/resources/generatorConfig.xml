@@ -74,5 +74,8 @@
         <table tableName="information">
             <generatedKey column="id" sqlStatement="MySql" identity="true"/>
         </table>
+        <table tableName="admin">
+            <generatedKey column="admin_id" sqlStatement="MySql" identity="true"/>
+        </table>
     </context>
 </generatorConfiguration>
