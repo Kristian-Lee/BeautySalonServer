@@ -38,7 +38,7 @@
             <br><br><br><br><br><br>
             <div class="ui container" style="width: 85%" th:align="right">
                 <div class="ui selection dropdown">
-                    <input type="hidden" id="barbershop">
+                    <input type="hidden" id="barbershop" v-model="barbershopName">
                     <i class="dropdown icon"></i>
                     <div class="default text">{{barbershopName}}</div>
                     <div class="menu" id="addItem">
@@ -60,8 +60,8 @@
                     turnOvers: [],
                     date: [],
                     passengerFlows: [],
-                    turnOver: "40,000",
-                    passengerFlow: "300",
+                    turnOver: "0",
+                    passengerFlow: "0",
                     barbershopName: "",
                     barbershops: []
                 },
@@ -78,81 +78,87 @@
                                     $("#addItem").append("<div class='item' data-value="+name[i]+">"+name[i]+"</div>")
                                 }
                             }
+                            axios.get('/admin/Date?barbershopName=' + this.barbershopName)
+                                .then(response => {
+                                    this.date = response.data
+                                    lineChart.setOption({
+                                        xAxis: {
+                                            data: this.date
+                                        }
+                                    })
+                                    barChart.setOption({
+                                        xAxis: {
+                                            data: this.date
+                                        }
+                                    })
+                                })
+                                .catch(function(error) {
+                                    console.log(error);
+                                });
+
+                            axios.get('/admin/allPassengerFlow?barbershopName=' + this.barbershopName)
+                                .then(response => {
+                                    this.passengerFlows = response.data
+                                    this.passengerFlow = this.passengerFlows[this.passengerFlows.length - 1]
+                                    barChart.setOption({
+                                        series: [{
+                                            name: '客流量',
+                                            type: 'bar',
+                                            data: this.passengerFlows
+                                        }]
+                                    })
+                                    lineChart.setOption({
+                                        series: [{
+                                            name: '客流量',
+                                            type: 'line',
+                                            data: this.passengerFlows
+                                        }]
+                                    })
+                                })
+                                .catch(function(error) {
+                                    console.log(error);
+                                });
+
+
+                            axios.get('/admin/allTurnOver?barbershopName=' + this.barbershopName)
+                                .then(response => {
+                                    this.turnOvers = response.data
+                                    this.turnOver = this.turnOvers[this.turnOvers.length - 1]
+                                    barChart.setOption({
+                                        series: [{
+                                            name: '营业额',
+                                            type: 'bar',
+                                            data: this.turnOvers
+                                        }]
+                                    })
+                                    lineChart.setOption({
+                                        series: [{
+                                            name: '营业额',
+                                            type: 'line',
+                                            data: this.turnOvers
+                                        }]
+                                    })
+                                })
+                                .catch(function(error) {
+                                    console.log(error);
+                                });
                         })
                         .catch(function(error) {
                             console.log(error);
                         });
                     $('.ui.selection.dropdown').dropdown();
-                    axios.get('/admin/allPassengerFlow')
-                        .then(response => {
-                            this.passengerFlows = response.data
-                            this.passengerFlow = this.passengerFlows[this.passengerFlows.length - 1]
-                            barChart.setOption({
-                                series: [{
-                                    name: '客流量',
-                                    type: 'bar',
-                                    data: this.passengerFlows
-                                }]
-                            })
-                            lineChart.setOption({
-                                series: [{
-                                    name: '客流量',
-                                    type: 'line',
-                                    data: this.passengerFlows
-                                }]
-                            })
-                        })
-                        .catch(function(error) {
-                            console.log(error);
-                        });
 
-                    axios.get('/admin/Date')
-                        .then(response => {
-                            this.date = response.data
-                            lineChart.setOption({
-                                xAxis: {
-                                    data: this.date
-                                }
-                            })
-                            barChart.setOption({
-                                xAxis: {
-                                    data: this.date
-                                }
-                            })
-                        })
-                        .catch(function(error) {
-                            console.log(error);
-                        });
 
-                    axios.get('/admin/allTurnOver')
-                        .then(response => {
-                            this.turnOvers = response.data
-                            this.turnOver = this.turnOvers[this.turnOvers.length - 1]
-                            barChart.setOption({
-                                series: [{
-                                    name: '营业额',
-                                    type: 'bar',
-                                    data: this.turnOvers
-                                }]
-                            })
-                            lineChart.setOption({
-                                series: [{
-                                    name: '营业额',
-                                    type: 'line',
-                                    data: this.turnOvers
-                                }]
-                            })
-                        })
-                        .catch(function(error) {
-                            console.log(error);
-                        });
 
                 },
                 methods: {
+                    change: function(barbershopName) {
 
+                    },
                 }
             })
 
+            app.barbershopName = "莞丽美发"
 
             // 基于准备好的dom，初始化echarts实例
             var barChart = echarts.init(document.getElementById('barChart'));
@@ -161,7 +167,7 @@
             console.log(app.turnOver)
             var option = {
                 title: {
-                    text: '莞丽美发 统计柱状图'
+                    text: app.barbershopName + ' 统计柱状图'
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -201,7 +207,7 @@
             console.log(app.turnOver)
             var option = {
                 title: {
-                    text: '莞丽美发 统计折线图'
+                    text: app.barbershopName + ' 统计折线图'
                 },
                 tooltip: {
                     trigger: 'axis'
@@ -229,6 +235,147 @@
 
             // 使用刚指定的配置项和数据显示图表。
             lineChart.setOption(option);
+
+            $(document).on('click', "#addItem", function () {
+                app.barbershopName = document.getElementById("barbershop").value
+                axios.get('/admin/Date?barbershopName=' + app.barbershopName)
+                    .then(response => {
+                        this.date = response.data
+                        lineChart.setOption({
+                            xAxis: {
+                                data: this.date
+                            }
+                        })
+                        barChart.setOption({
+                            xAxis: {
+                                data: this.date
+                            }
+                        })
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+                axios.get('/admin/allPassengerFlow?barbershopName=' + app.barbershopName)
+                    .then(response => {
+                        app.passengerFlows = response.data
+                        app.passengerFlow = app.passengerFlows[app.passengerFlows.length - 1]
+                        barChart.setOption({
+                            series: [{
+                                name: '客流量',
+                                type: 'bar',
+                                data: app.passengerFlows
+                            }]
+                        })
+                        lineChart.setOption({
+                            series: [{
+                                name: '客流量',
+                                type: 'line',
+                                data: app.passengerFlows
+                            }]
+                        })
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+
+
+                axios.get('/admin/allTurnOver?barbershopName=' + app.barbershopName)
+                    .then(response => {
+                        app.turnOvers = response.data
+                        app.turnOver = app.turnOvers[app.turnOvers.length - 1]
+                        barChart.setOption({
+                            series: [{
+                                name: '营业额',
+                                type: 'bar',
+                                data: app.turnOvers
+                            }]
+                        })
+                        lineChart.setOption({
+                            series: [{
+                                name: '营业额',
+                                type: 'line',
+                                data: app.turnOvers
+                            }]
+                        })
+                    })
+                    .catch(function(error) {
+                        console.log(error);
+                    });
+                // 基于准备好的dom，初始化echarts实例
+                var barChart = echarts.init(document.getElementById('barChart'));
+
+                // 指定图表的配置项和数据
+                console.log(app.turnOver)
+                var option = {
+                    title: {
+                        text: app.barbershopName + ' 统计柱状图'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data:['客流量', '营业额']
+                    },
+                    yAxis: {},
+                    xAxis: {
+                        data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子", "羽绒"]
+                    },
+                    series: [
+                        {
+                            name: '客流量',
+                            type: 'bar',
+                            data: app.passengerFlows
+                        },
+                        {
+                            name: '营业额',
+                            type: 'bar',
+                            data: app.turnOvers
+                        }
+                    ]
+                };
+
+                // 使用刚指定的配置项和数据显示图表。
+                barChart.setOption(option);
+
+
+                // 基于准备好的dom，初始化echarts实例
+                var lineChart = echarts.init(document.getElementById('lineChart'));
+
+                // 指定图表的配置项和数据
+                var option = {
+                    title: {
+                        text: app.barbershopName + ' 统计折线图'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data:['客流量', '营业额']
+                    },
+                    yAxis: {},
+                    xAxis: {
+                        data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子", "羽绒"]
+                    },
+                    series: [
+                        {
+                            name: '客流量',
+                            type: 'line',
+                            data: app.passengerFlows
+                        },
+                        {
+                            name: '营业额',
+                            type: 'line',
+                            data: app.turnOvers
+                        }
+                    ]
+                };
+
+                // 使用刚指定的配置项和数据显示图表。
+                lineChart.setOption(option);
+            })
         </script>
     </body>
 </html>

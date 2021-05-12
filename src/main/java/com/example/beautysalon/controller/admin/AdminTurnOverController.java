@@ -2,12 +2,10 @@ package com.example.beautysalon.controller.admin;
 
 import com.example.beautysalon.service.TurnOverService;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -30,22 +28,23 @@ public class AdminTurnOverController {
     @CrossOrigin
     @GetMapping("/allTurnOver")
     @ResponseBody
-    private List<Float> getAllTurnOver() {
-        return turnOverService.getAllTurnOver();
+    private List<Float> getAllTurnOver(@RequestParam String barbershopName) throws ParseException {
+        return turnOverService.getAllTurnOver(barbershopName);
     }
 
     @CrossOrigin
     @GetMapping("/allPassengerFlow")
     @ResponseBody
-    private List<Integer> getAllPassengerFlow() {
-        return turnOverService.getAllPassengerFlow();
+    private List<Integer> getAllPassengerFlow(@RequestParam String barbershopName) throws ParseException {
+        return turnOverService.getAllPassengerFlow(barbershopName);
     }
 
 
     @CrossOrigin
     @GetMapping("/Date")
     @ResponseBody
-    private List<String> getDate() {
-        return turnOverService.getDate();
+    private List<String> getDate(@RequestParam String barbershopName) throws ParseException {
+        System.out.println(barbershopName);
+        return turnOverService.getDate(barbershopName);
     }
 }
