@@ -294,7 +294,7 @@
                     app.group = Math.ceil(app.total / app.size)
                     alert("删除成功")
                 } else {
-                    alert("删除失败")
+                    alert("删除失败，或因该优惠券已被领取或使用过")
                 }
             })
             .catch(error => console.log(error))
@@ -317,27 +317,28 @@
             }).then(response => {
                 let result = false;
                 if (response.data !== -1){
-                    app.total = app.total + 1
-                    app.group = Math.ceil(app.total / app.size)
-                    app.coupons.push(coupon)
-                    app.coupons[app.coupons.length - 1].couponId = response.data
-                    app.coupons[app.coupons.length - 1].type = app.type
-                    if (app.type === "满减券") {
-                        app.coupons[app.coupons.length - 1].value = "￥" + app.value
-                    } else {
-                        app.coupons[app.coupons.length - 1].value = app.value + "折"
-                    }
-                    if (app.upTo !== "0") {
-                        app.coupons[app.coupons.length - 1].upTo = "满" + app.upTo + "可用"
-                    } else {
-                        app.coupons[app.coupons.length - 1].upTo = "无门槛"
-                    }
-                    app.coupons[app.coupons.length - 1].dateFrom = app.dateFrom
-                    app.coupons[app.coupons.length - 1].dateTo = app.dateTo
-                    app.coupons[app.coupons.length - 1].totalNum = app.totalNum
-                    app.coupons[app.coupons.length - 1].num = app.totalNum
+                    // app.total = app.total + 1
+                    // app.group = Math.ceil(app.total / app.size)
+                    // app.coupons.push(coupon)
+                    // app.coupons[app.coupons.length - 1].couponId = response.data
+                    // app.coupons[app.coupons.length - 1].type = app.type
+                    // if (app.type === "满减券") {
+                    //     app.coupons[app.coupons.length - 1].value = "￥" + app.value
+                    // } else {
+                    //     app.coupons[app.coupons.length - 1].value = app.value + "折"
+                    // }
+                    // if (app.upTo !== "0") {
+                    //     app.coupons[app.coupons.length - 1].upTo = "满" + app.upTo + "可用"
+                    // } else {
+                    //     app.coupons[app.coupons.length - 1].upTo = "无门槛"
+                    // }
+                    // app.coupons[app.coupons.length - 1].dateFrom = app.dateFrom
+                    // app.coupons[app.coupons.length - 1].dateTo = app.dateTo
+                    // app.coupons[app.coupons.length - 1].totalNum = app.totalNum
+                    // app.coupons[app.coupons.length - 1].num = app.totalNum
 
                     alert("添加成功")
+                    location.reload()
                 } else {
                     alert("添加失败")
                 }

@@ -59,6 +59,7 @@ public class TurnOverService {
                 .andBarbershopIdEqualTo(barbershopList.get(0).getBarbershopId())
                 .andCreateDateGreaterThanOrEqualTo(dateFrom)
                 .andCreateDateLessThanOrEqualTo(dateTo);
+        turnoverExample.setOrderByClause("create_date asc");
         return turnoverMapper.selectByExample(turnoverExample);
     }
 
@@ -84,7 +85,7 @@ public class TurnOverService {
                 turnover.setPerson(0);
                 turnover.setTotal(0f);
                 turnoverMapper.insert(turnover);
-                dateList.add(format.format(dateFrom));
+                dateList.add(i, format.format(dateFrom));
             }
             dateFrom = new Date(dateFrom.getTime() + 86400000L);
         }

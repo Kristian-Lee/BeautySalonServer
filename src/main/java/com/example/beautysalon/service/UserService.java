@@ -2,9 +2,7 @@ package com.example.beautysalon.service;
 
 
 import com.alibaba.fastjson.JSON;
-import com.example.beautysalon.mbg.mapper.SignInMapper;
-import com.example.beautysalon.mbg.mapper.StylistMapper;
-import com.example.beautysalon.mbg.mapper.UserMapper;
+import com.example.beautysalon.mbg.mapper.*;
 import com.example.beautysalon.mbg.model.*;
 import com.example.beautysalon.response.ResponseBody;
 import com.example.beautysalon.response.ResponseCode;
@@ -25,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Lee
@@ -43,6 +42,16 @@ public class UserService {
     private RedisService redisService;
     @Resource
     private SignInMapper signInMapper;
+    @Resource
+    private ReserveMapper reserveMapper;
+    @Resource
+    private CommentMapper commentMapper;
+    @Resource
+    private CouponMapper couponMapper;
+    @Resource
+    private PointsMapper pointsMapper;
+    @Resource
+    private BalanceMapper balanceMapper;
 
     public boolean existAccount(User user) {
 
@@ -178,9 +187,57 @@ public class UserService {
 
 
     public String deleteUser(Integer userId){
+        ReserveExample reserveExample = new ReserveExample();
+        reserveExample.createCriteria()
+                .andUserIdEqualTo(userId);
+        if (reserveMapper.selectByExample(reserveExample).size() > 0) {
+            return "删除失败，该用户仍绑定有关联数据";
+        }
+
+        CommentExample commentExample = new CommentExample();
+        commentExample.createCriteria()
+                .andUserIdEqualTo(userId);
+        if (commentMapper.selectByExample(commentExample).size() > 0) {
+            return "删除失败，该用户仍绑定有关联数据";
+        }
+
+
         int i = userMapper.deleteByPrimaryKey(userId);
         if (i == -1){
             return "删除失败";
+        } else {
+            SignInExample signInExample = new SignInExample();
+            signInExample.createCriteria()
+                    .andUserIdEqualTo(userId);
+            List<SignIn> signInList = signInMapper.selectByExample(signInExample);
+            if (signInList != null && signInList.size() > 0) {
+                signInMapper.deleteByPrimaryKey(signInList.get(0).getId());
+            }
+
+
+            CouponExample couponExample = new CouponExample();
+            couponExample.createCriteria()
+                    .andUserIdEqualTo(userId);
+            List<Coupon> couponList = couponMapper.selectByExample(couponExample);
+            couponList.stream().filter(Objects::nonNull).forEach(coupon -> {
+                couponMapper.deleteByPrimaryKey(coupon.getId());
+            });
+
+            PointsExample pointsExample = new PointsExample();
+            pointsExample.createCriteria()
+                    .andUserIdEqualTo(userId);
+            List<Points> pointsList = pointsMapper.selectByExample(pointsExample);
+            pointsList.stream().filter(Objects::nonNull).forEach(points -> {
+                pointsMapper.deleteByPrimaryKey(points.getId());
+            });
+
+            BalanceExample balanceExample = new BalanceExample();
+            balanceExample.createCriteria()
+                    .andUserIdEqualTo(userId);
+            List<Balance> balanceList = balanceMapper.selectByExample(balanceExample);
+            balanceList.stream().filter(Objects::nonNull).forEach(balance-> {
+                balanceMapper.deleteByPrimaryKey(balance.getId());
+            });
         }
         return "删除成功";
     }
@@ -190,7 +247,9 @@ public class UserService {
 
         user.setUserId(userVo.getUserId());
         user.setUserName(userVo.getUsername());
-        user.setBirthday(new SimpleDateFormat("yyyy-MM-dd").parse(userVo.getBirthday()));
+        if (userVo.getBirthday() != null && userVo.getBirthday().equals("")) {
+            user.setBirthday(new SimpleDateFormat("yyyy-MM-dd").parse(userVo.getBirthday()));
+        }
         user.setHobby(userVo.getHobby());
         user.setPoints(userVo.getPoints());
         user.setMoney(userVo.getBalance());
@@ -275,6 +334,7 @@ public class UserService {
             criteria.andUserNameLike("%" + key + "%");
             userExample.or(criteria);
         }
+        userExample.setOrderByClause("user_id desc");
         List<User> userList = userMapper.selectByExample(userExample);
         return userList;
     }

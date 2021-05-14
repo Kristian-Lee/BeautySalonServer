@@ -54,6 +54,9 @@ public class ReserveService {
     @Resource
     private PointsMapper pointsMapper;
 
+    @Resource
+    private CommentMapper commentMapper;
+
 
     public ResponseBody getBusinessHours(int stylistId) {
 
@@ -183,7 +186,6 @@ public class ReserveService {
         }
         return new ResponseBody(ResponseCode.RESERVE_FAILED, "");
     }
-
 
     public ResponseBody cancelReserve(Integer id) throws ParseException {
         boolean result = false;
@@ -445,6 +447,9 @@ public class ReserveService {
                 pointsMapper.insert(points);
                 reserve.setIsRewarded(1);
                 reserveMapper.updateByPrimaryKeySelective(reserve);
+                User tempUser = userMapper.selectByPrimaryKey(user.getUserId());
+                tempUser.setPoints(tempUser.getPoints() + value);
+                userMapper.updateByPrimaryKeySelective(tempUser);
             });
 
             return new ResponseBody(ResponseCode.REQUEST_RESERVATION_DATA_SUCCESS, map);
@@ -641,7 +646,17 @@ public class ReserveService {
     }
 
     public int deleteReservation(Integer reserveId) {
-        return reserveMapper.deleteByPrimaryKey(reserveId);
+        if (reserveMapper.deleteByPrimaryKey(reserveId) == -1) {
+            return -1;
+        }
+        CommentExample commentExample = new CommentExample();
+        commentExample.createCriteria()
+                .andOrderIdEqualTo(reserveId);
+        List<Comment> commentList = commentMapper.selectByExample(commentExample);
+        commentList.stream().filter(Objects::nonNull).forEach(comment -> {
+            commentMapper.deleteByPrimaryKey(comment.getId());
+        });
+        return 1;
     }
 
     public int cancelReservation(Integer reserveId) throws ParseException {
@@ -651,5 +666,27 @@ public class ReserveService {
         } else {
             return -1;
         }
+    }
+
+    public ResponseBody getReserveStatus(Integer reserveId) {
+        System.out.println("reserveId" + reserveId);
+        Reserve reserve = reserveMapper.selectByPrimaryKey(reserveId);
+        String result = "";
+        if (reserve != null) {
+            switch (reserve.getStatus()) {
+                case 0:
+                    result = "unpaid";
+                    break;
+                case 1:
+                    result = "paid";
+                    break;
+                default:
+                    break;
+            }
+            System.out.println("status" + reserve.getStatus());
+        }
+        System.out.println(result);
+
+        return new ResponseBody(ResponseCode.REQUEST_RESERVE_STATUS_SUCCESS, result);
     }
 }

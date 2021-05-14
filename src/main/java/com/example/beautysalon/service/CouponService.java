@@ -3,6 +3,7 @@ package com.example.beautysalon.service;
 import com.alibaba.fastjson.JSON;
 import com.example.beautysalon.mbg.mapper.CouponDistributionMapper;
 import com.example.beautysalon.mbg.mapper.CouponMapper;
+import com.example.beautysalon.mbg.mapper.ReserveMapper;
 import com.example.beautysalon.mbg.mapper.UserMapper;
 import com.example.beautysalon.mbg.model.*;
 import com.example.beautysalon.response.ResponseBody;
@@ -32,6 +33,8 @@ public class CouponService {
     private CouponMapper couponMapper;
     @Resource
     private CouponDistributionMapper couponDistributionMapper;
+    @Resource
+    private ReserveMapper reserveMapper;
 
     public ResponseBody getCouponDistribution(User user) {
         HashMap<String, Object> map = new HashMap<>();
@@ -159,7 +162,9 @@ public class CouponService {
     }
 
     public List<CouponDistribution> getCouponQuantities(String key) {
-        return couponDistributionMapper.selectByExample(new CouponDistributionExample());
+        CouponDistributionExample couponDistributionExample = new CouponDistributionExample();
+        couponDistributionExample.setOrderByClause("id desc");
+        return couponDistributionMapper.selectByExample(couponDistributionExample);
     }
 
     public int addCoupon(CouponVo couponVo) throws ParseException {
@@ -182,6 +187,21 @@ public class CouponService {
     }
 
     public int deleteCoupon(Integer couponId) {
+
+        CouponExample couponExample = new CouponExample();
+        couponExample.createCriteria()
+                .andCouponIdEqualTo(couponId);
+        if (couponMapper.selectByExample(couponExample).size() > 0) {
+            return -1;
+        }
+
+        ReserveExample reserveExample = new ReserveExample();
+        reserveExample.createCriteria()
+                .andCouponEqualTo(couponId);
+        if (reserveMapper.selectByExample(reserveExample).size() > 0) {
+            return -1;
+        }
+
         return couponDistributionMapper.deleteByPrimaryKey(couponId);
     }
 }

@@ -37,6 +37,8 @@ public class StylistService {
     private RedisService redisService;
     @Resource
     private CommentMapper commentMapper;
+    @Resource
+    private BusinessHoursMapper businessHoursMapper;
 
     /** 根据手机号判断用户是否存在 */
     public boolean existAccount(Stylist stylist) {
@@ -96,17 +98,27 @@ public class StylistService {
     }
 
     public List<Stylist> selectAllStylist() {
-        return stylistMapper.selectByExample(new StylistExample());
+        StylistExample stylistExample = new StylistExample();
+        stylistExample.createCriteria()
+                .andIsPassedEqualTo(1);
+        return stylistMapper.selectByExample(stylistExample);
     }
 
-    public List<Evaluation> selectAllEvaluation() {
-        return evaluationMapper.selectByExample(new EvaluationExample());
+    public List<Evaluation> selectAllEvaluation(List<Integer> idList) {
+        EvaluationExample evaluationExample = new EvaluationExample();
+        evaluationExample.createCriteria()
+                .andStylistIdIn(idList);
+        return evaluationMapper.selectByExample(evaluationExample);
     }
 
     public HashMap<String, Object> selectMainData() {
         HashMap<String, Object> map = new HashMap<>();
         List<Stylist> stylistList = selectAllStylist();
-        List<Evaluation> evaluationList = selectAllEvaluation();
+        List<Integer> idList = new ArrayList<>();
+        stylistList.stream().filter(Objects::nonNull).forEach(stylist -> {
+            idList.add(stylist.getStylistId());
+        });
+        List<Evaluation> evaluationList = selectAllEvaluation(idList);
         if (stylistList != null && evaluationList != null) {
             map.put("stylist", stylistList);
             map.put("evaluation", evaluationList);
@@ -307,6 +319,7 @@ public class StylistService {
         StylistExample stylistExample1 = new StylistExample();
         StylistExample.Criteria criteria = stylistExample1.createCriteria();
         BarbershopExample barbershopExample = new BarbershopExample();
+        stylistExample.setOrderByClause("stylist_id desc");
         barbershopExample.createCriteria().andBarbershopNameLike("%" + key + "%");
         List<Barbershop> barbershopList = barbershopMapper.selectByExample(barbershopExample);
         List<Integer> idList = new ArrayList<>();
@@ -328,9 +341,40 @@ public class StylistService {
     }
 
     public String deleteStylist(Integer stylistId){
+        ReserveExample reserveExample = new ReserveExample();
+        reserveExample.createCriteria()
+                .andStylistIdEqualTo(stylistId);
+        if (reserveMapper.selectByExample(reserveExample).size() > 0) {
+            return "删除失败，该发型师仍绑定有关联数据";
+        }
+
+        CommentExample commentExample = new CommentExample();
+        commentExample.createCriteria()
+                .andStylistIdEqualTo(stylistId);
+        if (commentMapper.selectByExample(commentExample).size() > 0) {
+            return "删除失败，该发型师仍绑定有关联数据";
+        }
+
+
         int i = stylistMapper.deleteByPrimaryKey(stylistId);
         if (i == -1){
             return "删除失败";
+        } else {
+            EvaluationExample evaluationExample = new EvaluationExample();
+            evaluationExample.createCriteria()
+                    .andStylistIdEqualTo(stylistId);
+            List<Evaluation> evaluationList = evaluationMapper.selectByExample(evaluationExample);
+            evaluationList.stream().filter(Objects::nonNull).forEach(evaluation -> {
+                evaluationMapper.deleteByPrimaryKey(evaluation.getId());
+            });
+
+            BusinessHoursExample businessHoursExample = new BusinessHoursExample();
+            businessHoursExample.createCriteria()
+                    .andStylistIdEqualTo(stylistId);
+            List<BusinessHours> businessHoursList = businessHoursMapper.selectByExample(businessHoursExample);
+            businessHoursList.stream().filter(Objects::nonNull).forEach(businessHours -> {
+                businessHoursMapper.deleteByPrimaryKey(businessHours.getId());
+            });
         }
         return "删除成功";
     }

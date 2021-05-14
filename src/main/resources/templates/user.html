@@ -198,7 +198,7 @@
 
 										//判断生日合法性
 										let date;
-										if (app.birthday !== "") {
+										if (app.birthday != null && app.birthday !== "") {
 											date = app.birthday.split("-")
 											const today = new Date();
 
@@ -393,28 +393,31 @@
 									// user.append("phone", app.phone)
 									// app.users.splice((app.users.length + 1),1,user);
 
-									if (app.query !== "") {
-										if (app.username.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1) {
-											app.total = app.total + 1
-											app.group = Math.ceil(app.total / app.size)
-											result = true
-										}
-									} else {
-										app.total = app.total + 1
-										app.group = Math.ceil(app.total / app.size)
-										result = true
-									}
-									if (result) {
-										app.users.push(user)
-										app.users[app.users.length - 1].userId = response.data
-										app.users[app.users.length - 1].username = app.username
-										app.users[app.users.length - 1].birthday = app.birthday
-										app.users[app.users.length - 1].hobby = app.hobby
-										app.users[app.users.length - 1].points = 0
-										app.users[app.users.length - 1].balance = 0
-										app.users[app.users.length - 1].phone = app.phone
-									}
+
+
+									// if (app.query !== "") {
+									// 	if (app.username.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1) {
+									// 		app.total = app.total + 1
+									// 		app.group = Math.ceil(app.total / app.size)
+									// 		result = true
+									// 	}
+									// } else {
+									// 	app.total = app.total + 1
+									// 	app.group = Math.ceil(app.total / app.size)
+									// 	result = true
+									// }
+									// if (result) {
+									// 	app.users.push(user)
+									// 	app.users[app.users.length - 1].userId = response.data
+									// 	app.users[app.users.length - 1].username = app.username
+									// 	app.users[app.users.length - 1].birthday = app.birthday
+									// 	app.users[app.users.length - 1].hobby = app.hobby
+									// 	app.users[app.users.length - 1].points = 0
+									// 	app.users[app.users.length - 1].balance = 0
+									// 	app.users[app.users.length - 1].phone = app.phone
+									// }
 									alert("添加成功")
+									location.reload()
 								}
 								else {
 									alert("添加失败或手机号已被注册")

@@ -65,6 +65,7 @@ public class AdminStylistController {
     @GetMapping("/examineStylist")
     @ResponseBody
     public Integer examineStylist(@RequestParam Integer stylistId){
+        System.out.println("审核中");
         return stylistService.examineStylist(stylistId);
     }
 

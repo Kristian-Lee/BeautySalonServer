@@ -49,4 +49,8 @@ public class ReserveController {
     public ResponseBody getValidPointsCoupon(@RequestBody String map) {
         return reserveService.getValidPointsCoupon(map);
     }
+    @PostMapping("reserve/status")
+    public ResponseBody getReserveStatus(Integer reserveId) {
+        return reserveService.getReserveStatus(reserveId);
+    }
 }

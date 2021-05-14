@@ -282,26 +282,27 @@
                   }).then(response => {
                         let result = false;
                         if (response.data !== -1){
-                            if (app.query !== "") {
-                                if (app.barbershopName.indexOf(app.query) !== -1 || app.address.indexOf(app.query) !== -1) {
-                                    app.total = app.total + 1
-                                    app.group = Math.ceil(app.total / app.size)
-                                    result = true
-                                }
-                            } else {
-                                app.total = app.total + 1
-                                app.group = Math.ceil(app.total / app.size)
-                                result = true
-                            }
-                            if (result) {
-                                app.barbershops.push(barbershop)
-                                app.barbershops[app.barbershops.length - 1].barbershopId = response.data
-                                app.barbershops[app.barbershops.length - 1].barbershopName = app.barbershopName
-                                app.barbershops[app.barbershops.length - 1].address = app.address
-                                app.barbershops[app.barbershops.length - 1].open = app.open
-                                app.barbershops[app.barbershops.length - 1].close = app.close
-                            }
+                            // if (app.query !== "") {
+                            //     if (app.barbershopName.indexOf(app.query) !== -1 || app.address.indexOf(app.query) !== -1) {
+                            //         app.total = app.total + 1
+                            //         app.group = Math.ceil(app.total / app.size)
+                            //         result = true
+                            //     }
+                            // } else {
+                            //     app.total = app.total + 1
+                            //     app.group = Math.ceil(app.total / app.size)
+                            //     result = true
+                            // }
+                            // if (result) {
+                            //     app.barbershops.push(barbershop)
+                            //     app.barbershops[app.barbershops.length - 1].barbershopId = response.data
+                            //     app.barbershops[app.barbershops.length - 1].barbershopName = app.barbershopName
+                            //     app.barbershops[app.barbershops.length - 1].address = app.address
+                            //     app.barbershops[app.barbershops.length - 1].open = app.open
+                            //     app.barbershops[app.barbershops.length - 1].close = app.close
+                            // }
                             alert("添加成功")
+                            location.reload()
                         } else {
                             alert("添加失败")
                         }
@@ -314,6 +315,7 @@
 
           $(document).on('click', '#updateBarbershop', function() {
               let barbershop = new FormData()
+              barbershop.append("barbershopId", app.barbershopId)
               barbershop.append("barbershopName", app.barbershopName)
               barbershop.append("address", app.address)
               barbershop.append("open", app.open)
@@ -333,6 +335,7 @@
                           app.barbershops[app.index].address = app.address
                           app.barbershops[app.index].open = app.open
                           app.barbershops[app.index].close = app.close
+                          alert("更新成功")
                       } else {
                           alert("更新失败")
                       }

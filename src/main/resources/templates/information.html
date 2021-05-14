@@ -288,29 +288,30 @@
                 }).then(response => {
                     let result = false;
                     if (response.data !== -1){
-                        if (app.query !== "") {
-                            if (app.title.indexOf(app.query) !== -1 || app.content.indexOf(app.query) !== -1) {
-                                app.total = app.total + 1
-                                app.group = Math.ceil(app.total / app.size)
-                                result = true
-                            }
-                        } else {
-                            app.total = app.total + 1
-                            app.group = Math.ceil(app.total / app.size)
-                            result = true
-                        }
-                        if (result) {
-                            app.informationList.push(information)
-                            app.informationList[app.informationList.length - 1].id = response.data
-                            app.informationList[app.informationList.length - 1].title = app.title
-                            app.informationList[app.informationList.length - 1].content = app.content
-                            app.informationList[app.informationList.length - 1].webView = app.webView
-                            app.informationList[app.informationList.length - 1].content = app.content
-                            const date = new Date();
-                            app.createDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
-                            app.informationList[app.informationList.length - 1].createDate = app.createDate
-                        }
+                        // if (app.query !== "") {
+                        //     if (app.title.indexOf(app.query) !== -1 || app.content.indexOf(app.query) !== -1) {
+                        //         app.total = app.total + 1
+                        //         app.group = Math.ceil(app.total / app.size)
+                        //         result = true
+                        //     }
+                        // } else {
+                        //     app.total = app.total + 1
+                        //     app.group = Math.ceil(app.total / app.size)
+                        //     result = true
+                        // }
+                        // if (result) {
+                        //     app.informationList.push(information)
+                        //     app.informationList[app.informationList.length - 1].id = response.data
+                        //     app.informationList[app.informationList.length - 1].title = app.title
+                        //     app.informationList[app.informationList.length - 1].content = app.content
+                        //     app.informationList[app.informationList.length - 1].webView = app.webView
+                        //     app.informationList[app.informationList.length - 1].content = app.content
+                        //     const date = new Date();
+                        //     app.createDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()
+                        //     app.informationList[app.informationList.length - 1].createDate = app.createDate
+                        // }
                         alert("添加成功")
+                        location.reload()
                     } else {
                         alert("添加失败")
                     }

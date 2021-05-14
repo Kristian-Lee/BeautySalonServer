@@ -65,7 +65,7 @@
 
                                 <button class="ui green button" @click="toUpdate(index)">更新</button>
                                 <button class="ui red button" @click="toDelete(index)">删除</button>
-                                <button class="ui blue button" @click="examine(index)" v-if="stylist.passed === '未通过'">审核</button>
+                                <button class="ui blue button" @click="examine(index)" v-show="stylist.passed === '未通过'">审核</button>
                             </td>
                         </tr>
                         </tbody>
@@ -374,11 +374,17 @@
             })
 
             $(document).on('click', '#examine', function() {
+                if (app.stylists[app.index].passed === "通过") {
+                    app.stylists[app.index].passed = "通过"
+                    console.log("验证")
+                }
                 axios.get('/admin/examineStylist?stylistId=' + app.stylistId)
                     .then(response => {
                         let result = response.data
                         if (result !== -1) {
                             app.stylists[app.index].passed = "通过"
+                            app.reload()
+                            alert("审核通过")
                         } else {
                             alert("通过失败")
                         }
@@ -411,33 +417,34 @@
                             console.log(response.data)
                             let result = false;
                             if (response.data !== -1){
-                                if (app.query !== "") {
-                                    if (app.realName.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1
-                                        || app.barbershop.indexOf(app.query) !== -1) {
-                                        app.total = app.total + 1
-                                        app.group = Math.ceil(app.total / app.size)
-                                        result = true
-                                    }
-                                } else {
-                                    app.total = app.total + 1
-                                    app.group = Math.ceil(app.total / app.size)
-                                    result = true
-                                }
-                                if (result) {
-                                    app.stylists.push(stylist)
-                                    app.stylists[app.stylists.length - 1].stylistId = response.data
-                                    app.stylists[app.stylists.length - 1].stylistName = app.stylistName
-                                    app.stylists[app.stylists.length - 1].realName = app.realName
-                                    app.stylists[app.stylists.length - 1].phone = app.phone
-                                    app.stylists[app.stylists.length - 1].barbershop = app.barbershop
-                                    app.stylists[app.stylists.length - 1].workingYears = app.workingYears
-                                    app.stylists[app.stylists.length - 1].speciality = app.speciality
-                                    app.stylists[app.stylists.length - 1].rate = 5.0
-                                    app.stylists[app.stylists.length - 1].popularity = 100 + "%"
-                                    app.stylists[app.stylists.length - 1].passed = "未通过"
-
-                                }
+                                // if (app.query !== "") {
+                                //     if (app.realName.indexOf(app.query) !== -1 || app.phone.indexOf(app.query) !== -1
+                                //         || app.barbershop.indexOf(app.query) !== -1) {
+                                //         app.total = app.total + 1
+                                //         app.group = Math.ceil(app.total / app.size)
+                                //         result = true
+                                //     }
+                                // } else {
+                                //     app.total = app.total + 1
+                                //     app.group = Math.ceil(app.total / app.size)
+                                //     result = true
+                                // }
+                                // if (result) {
+                                //     app.stylists.push(stylist)
+                                //     app.stylists[app.stylists.length - 1].stylistId = response.data
+                                //     app.stylists[app.stylists.length - 1].stylistName = app.stylistName
+                                //     app.stylists[app.stylists.length - 1].realName = app.realName
+                                //     app.stylists[app.stylists.length - 1].phone = app.phone
+                                //     app.stylists[app.stylists.length - 1].barbershop = app.barbershop
+                                //     app.stylists[app.stylists.length - 1].workingYears = app.workingYears
+                                //     app.stylists[app.stylists.length - 1].speciality = app.speciality
+                                //     app.stylists[app.stylists.length - 1].rate = 5.0
+                                //     app.stylists[app.stylists.length - 1].popularity = 100 + "%"
+                                //     app.stylists[app.stylists.length - 1].passed = "未通过"
+                                //
+                                // }
                                 alert("添加成功")
+                                location.reload()
                             }
                             else {
                                 alert("添加失败或手机号已被注册")

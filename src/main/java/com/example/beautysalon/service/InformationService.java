@@ -49,7 +49,9 @@ public class InformationService {
     }
 
     public List<Information> getInformationQuantities(String key) {
-        List<Information> informationList = informationMapper.selectByExampleWithBLOBs(new InformationExample());
+        InformationExample informationExample = new InformationExample();
+        informationExample.setOrderByClause("id desc");
+        List<Information> informationList = informationMapper.selectByExampleWithBLOBs(informationExample);
         if (!"".equals(key)) {
             for (int i = 0; i < informationList.size(); i++) {
                 String title = informationList.get(i).getTitle();

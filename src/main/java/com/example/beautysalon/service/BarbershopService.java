@@ -2,6 +2,7 @@ package com.example.beautysalon.service;
 
 import com.example.beautysalon.mbg.mapper.BarbershopMapper;
 import com.example.beautysalon.mbg.mapper.StylistMapper;
+import com.example.beautysalon.mbg.mapper.TurnoverMapper;
 import com.example.beautysalon.mbg.model.*;
 import com.example.beautysalon.vo.BarbershopVo;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Lee
@@ -24,6 +26,8 @@ public class BarbershopService {
     private BarbershopMapper barbershopMapper;
     @Resource
     private StylistMapper stylistMapper;
+    @Resource
+    private TurnoverMapper turnoverMapper;
 
     public HashMap<String, Integer> selectBarbershopName() {
         List<Barbershop> barbershops = barbershopMapper.selectByExample(new BarbershopExample());
@@ -76,6 +80,7 @@ public class BarbershopService {
         key = "%" + key + "%";
         BarbershopExample example = new BarbershopExample();
         BarbershopExample.Criteria criteria = new BarbershopExample().createCriteria();
+        example.setOrderByClause("barbershop_id desc");
         example.createCriteria().andBarbershopNameLike(key);
         criteria.andAddressLike(key);
         example.or(criteria);
@@ -112,9 +117,22 @@ public class BarbershopService {
         stylistExample.createCriteria()
                 .andBarbershopIdEqualTo(barbershopId);
         List<Stylist> stylistList = stylistMapper.selectByExample(stylistExample);
+
+
         if (stylistList != null && stylistList.size() > 0) {
             return -1;
         }
-        return barbershopMapper.deleteByPrimaryKey(barbershopId);
+        if (barbershopMapper.deleteByPrimaryKey(barbershopId) == -1) {
+            return -1;
+        }
+
+        TurnoverExample turnoverExample = new TurnoverExample();
+        turnoverExample.createCriteria()
+                .andBarbershopIdEqualTo(barbershopId);
+        List<Turnover> turnoverList = turnoverMapper.selectByExample(turnoverExample);
+        turnoverList.stream().filter(Objects::nonNull).forEach(turnover -> {
+            turnoverMapper.deleteByPrimaryKey(turnover.getId());
+        });
+        return 1;
     }
 }
